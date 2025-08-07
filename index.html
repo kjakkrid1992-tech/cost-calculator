@@ -2,101 +2,188 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>เครื่องคิดต้นทุน v1.2.2</title>
+  <meta name="viewport" content="width=900, initial-scale=1.0">
+  <title>เครื่องคิดต้นทุน v1.6.2</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fa; color: #333; }
-    .container { max-width: 950px; margin: 2rem auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 2rem; }
-    h2 { margin-bottom: 0.5rem; color: #007acc; }
-    .version { font-size: 0.9rem; color: #666; margin-bottom: 1rem; }
-    label { display: block; margin-bottom: 0.75rem; font-weight: 500; }
-    select, input { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
-    select:focus, input:focus { outline: none; border-color: #007acc; }
-    .table-wrapper { overflow-x: auto; margin-bottom: 1.5rem; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 0.75rem; text-align: center; }
-    th { background: #007acc; color: #fff; position: sticky; top: 0; }
-    tbody tr:nth-child(odd) { background: #fafafa; }
-    tbody tr:hover { background: #e6f7ff; }
-    .index { width: 50px; }
+    .container { max-width: 900px; margin: 2.5rem auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 18px #0002; padding: 2.5rem 2.6rem 2.2rem 2.6rem; }
+    h2 { margin-bottom: 0.7rem; color: #007acc; font-size: 2rem; letter-spacing:0.5px;}
+    .version { font-size: 0.99rem; color: #888; margin-bottom: 1.1rem; }
+    label { margin-bottom: 0.5rem; font-weight: 500; display: block;}
+    select, input[type=text] { padding: 0.55rem; border: 1px solid #ccc; border-radius: 5px; font-size: 1.07rem; width:100%; margin-bottom:0.4rem;}
+    select:focus, input:focus { outline: none; border-color: #007acc; background: #eafdff; }
+    .table-wrapper { overflow-x: auto; margin-bottom: 1.4rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 1.09rem;}
+    th, td { padding: 0.65rem 0.2rem; text-align: center; }
+    th { background: #007acc; color: #fff; font-size: 1.01rem; font-weight:600;}
+    tbody tr:nth-child(odd) { background: #f4fafd; }
+    tbody tr:hover { background: #e8f6ff; }
+    .index { width: 45px; }
     .shipRow, .shipShare, .result { font-weight: 600; }
-    .actions { width: 80px; }
-    .btn { display: inline-block; padding: 0.6rem 1.2rem; margin-right: 0.5rem; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.3s ease; }
+    .actions { width: 88px; }
+    .btn { display: inline-block; padding: 0.49rem 1.18rem; margin: 0.14rem 0.16rem; border: none; border-radius: 8px; font-size: 1.07rem; cursor: pointer; font-weight:500; transition: background 0.3s; box-shadow:0 1px 6px #0001;}
     .btn-add { background: #28a745; color: #fff; }
-    .btn-add:hover { background: #218838; }
-    .btn-clear { background: #dc3545; color: #fff; }
-    .btn-clear:hover { background: #c82333; }
-    .btn-delete { background: #dc3545; color: #fff; padding: 0.4rem 0.8rem; }
-    .btn-delete:hover { background: #c82333; }
-    .error { border-color: #dc3545 !important; }
-    .error-message { color: #dc3545; font-size: 0.9rem; margin-top: 0.25rem; display: none; }
-    #summary { margin-top: 1.5rem; font-size: 1rem; font-weight: 500; }
-    #details { margin-top: 0.5rem; font-size: 0.9rem; color: #555; }
+    .btn-add:hover { background: #22a03a; }
+    .btn-clear { background: #e74c3c; color: #fff; }
+    .btn-clear:hover { background: #c0392b; }
+    .btn-log { background: #007acc; color: #fff; }
+    .btn-log:hover { background: #036098; }
+    .btn-history { background: #7c55d8; color: #fff; }
+    .btn-history:hover { background: #6242ac; }
+    .btn-print { background: #424242; color: #fff; padding:0.45rem 0.92rem; font-size:0.97rem;}
+    .btn-print:active { background: #111; }
+    .btn-delete { background: #e74c3c; color: #fff; padding: 0.32rem 0.76rem; font-size:0.97rem; border: none; border-radius: 8px; cursor:pointer; font-weight:500; }
+    .btn-delete:hover { background: #b33; }
+    .error { border-color: #e74c3c !important; }
+    .error-message { color: #e74c3c; font-size: 0.97rem; margin-top: 0.16rem; display: none; }
     .hide-result { display: none; }
+    .receipt { font-family: 'Consolas', monospace; font-size: 15px; width: 350px; margin: auto; background: #fff; border-radius: 9px; border:1.7px solid #eee; box-shadow:0 0 14px #0001; padding: 18px 18px 20px 18px;}
+    .receipt .center { text-align: center; }
+    .receipt .hr { border-top: 1.2px dashed #888; margin: 10px 0 12px 0;}
+    .receipt .item { display: flex; justify-content:space-between; margin-bottom:3px;}
+    .history-table { margin:2em auto 0 auto; border-collapse: collapse; width: 100%; font-size: 1.04em;}
+    .history-table th, .history-table td { border: 1px solid #e7e8f3; padding: 0.52em 0.32em; text-align: right;}
+    .history-table th { background: #e9f5ff; color: #035;}
+    .history-table td.namecol, .history-table th.namecol { text-align: left;}
+    .history-table tbody tr:nth-child(even) { background: #f5f8fe;}
+    .history-header { font-weight:600; margin:2.1em 0 0.85em 0; font-size:1.13em; letter-spacing:0.2px;}
+    .show { display:block!important;}
+    .hide { display:none!important;}
+    /* Toast popup (SweetAlert2 Style) */
+    .toast {
+      animation: fadein 0.33s;
+      font-size: 1.19em;
+      padding: 36px 38px 32px 38px;
+      min-width: 240px;
+      text-align: center;
+      border-radius: 16px;
+      color: #fff;
+      background: linear-gradient(135deg,#31d972 82%,#28cdbb 100%);
+      box-shadow:0 3px 34px #31d97277;
+      margin: 40px auto;
+    }
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(25px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    td input[type="text"] {
+      width: 90%;
+      text-align: center;
+      margin: 0 auto;
+      display: block;
+      font-size: 1.09em;
+      padding: 0.45em 0.2em;
+      border-radius: 5px;
+    }
+    td .qty, td .totalPrice {
+      min-width: 75px;
+      max-width: 130px;
+    }
+    @media print {
+      body, .container { background: #fff !important; }
+      .container, .btn, .actions, .btn-add, .btn-clear, .btn-log, .btn-history, .btn-print, .error-message, .btn-delete, #popup, #historySection { display: none !important; }
+      .receipt { box-shadow:none !important; border:none !important; margin:0!important;}
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>เครื่องคิดต้นทุน (หลายรายการ)</h2>
-    <div class="version">Version: 1.2.2</div>
-    <label>ประเภทบิล:</label>
-    <select id="billType">
-      <option value="cash">เงินสด</option>
-      <option value="vat">VAT</option>
-    </select>
-    <div id="priceVATLabel">
-      <label>กรณี VAT: ราคาที่กรอกเป็น</label>
-      <select id="priceVAT">
-        <option value="exclusive">ยังไม่รวม VAT</option>
-        <option value="inclusive">รวม VAT</option>
+    <div class="version">Version: 1.6.2</div>
+    <label>ประเภทบิล:
+      <select id="billType">
+        <option value="cash">เงินสด</option>
+        <option value="vat">VAT</option>
       </select>
+    </label>
+    <div id="priceVATLabel">
+      <label>กรณี VAT: ราคาที่กรอกเป็น
+        <select id="priceVAT">
+          <option value="exclusive">ยังไม่รวม VAT</option>
+          <option value="inclusive">รวม VAT</option>
+        </select>
+      </label>
     </div>
     <label>ค่าขนส่งรวมต่อบิล (บาท):</label>
-    <input type="number" id="totalShip" placeholder="กรอกค่าขนส่งหรือเลือกไม่มีค่าขนส่ง">
+    <input type="text" id="totalShip" placeholder="กรอกค่าขนส่งหรือเลือกไม่มีค่าขนส่ง">
     <div id="shipError" class="error-message">กรุณากรอกค่าขนส่ง &gt; 0 หรือเลือก 'ไม่มีค่าขนส่ง'</div>
     <label style="margin-top: 0.5rem;"><input type="checkbox" id="noShip"> บิลนี้ไม่มีค่าขนส่ง</label>
+    <div style="margin-bottom:1.3rem; margin-top:0.9rem;">
+      <button class="btn btn-log" onclick="saveLog()" id="saveBtn">💾 บันทึกผล</button>
+      <button class="btn btn-clear" onclick="clearAll()">🧹 ล้างข้อมูล</button>
+      <button class="btn btn-history" onclick="toggleHistory()" id="historyBtn">🕒 ดูประวัติ</button>
+    </div>
     <div class="table-wrapper">
       <table id="calcTable">
         <thead>
           <tr>
             <th class="index">ลำดับ</th>
-            <th>จำนวนทั้งหมด</th>
-            <th>ราคารวมต่อรายการ (บาท)</th>
-            <th>ค่าขนส่ง/รายการ (บาท)</th>
-            <th>ค่าขนส่ง/หน่วย (บาท)</th>
-            <th>ต้นทุน/หน่วย (บาท)</th>
-            <th class="actions">จัดการ</th>
+            <th>จำนวน</th>
+            <th>ราคารวม/รายการ<br>(บาท)</th>
+            <th>ค่าขนส่ง/รายการ<br>(บาท)</th>
+            <th>ค่าขนส่ง/หน่วย<br>(บาท)</th>
+            <th>ต้นทุน/หน่วย<br>(บาท)</th>
+            <th class="actions">ลบ</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td class="index">1</td>
-            <td><input type="number" class="qty" placeholder="กรอกจำนวนทั้งหมด" min="1"></td>
-            <td><input type="number" class="totalPrice" placeholder="กรอกราคารวมต่อรายการ (บาท)" step="0.01" min="0"></td>
+            <td><input type="text" class="qty" placeholder="จำนวน" min="1"></td>
+            <td><input type="text" class="totalPrice" placeholder="ราคารวม/รายการ" step="0.01" min="0"></td>
             <td class="shipRow">-</td>
             <td class="shipShare">-</td>
             <td class="result hide-result">-</td>
-            <td><button class="btn-delete" onclick="deleteRow(this)">ลบ</button></td>
+            <td><button class="btn-delete" onclick="deleteRow(this)" title="ลบ">ลบ</button></td>
           </tr>
         </tbody>
       </table>
     </div>
-    <button class="btn btn-add" onclick="addRow()">เพิ่มแถว</button>
-    <button class="btn btn-clear" onclick="clearAll()">ล้างข้อมูล</button>
-    <div id="summary"></div>
-    <div id="details"></div>
+    <button class="btn btn-add" onclick="addRow()">➕ เพิ่มแถว</button>
+    <!-- ประวัติการคำนวณจะแสดงตรงนี้ -->
+    <div id="historySection" class="hide"></div>
+  </div>
+  <!-- Popup สำหรับแจ้งเตือน/ยืนยัน/ใบเสร็จ -->
+  <div id="popup" style="display:none; position:fixed; top:0;left:0;width:100vw;height:100vh;z-index:9999;background:rgba(0,0,0,0.25)">
+    <div id="popupContent" style="max-width:450px; margin:7vh auto; background:#fff; border-radius:14px; box-shadow:0 0 30px #0002; padding:1.7em 1.3em 1.9em 1.3em;position:relative">
+      <button onclick="closePopup()" style="position:absolute;top:9px;right:17px; background:none; border:none; font-size:1.34em; cursor:pointer;">✖️</button>
+      <div id="popupBody"></div>
+    </div>
   </div>
   <script>
-    // --- Auto Calculate Binding ---
+    // =============== UTILITIES ===============
+    function n2(num,fix=2) {
+      if(isNaN(num)||num==='-'||num==='') return '-';
+      return (+num).toLocaleString('th-TH', {minimumFractionDigits:fix, maximumFractionDigits:fix});
+    }
+    // =============== FORMAT INPUT WITH COMMA ===============
+    function formatInputNumberWithComma(input) {
+      let val = input.value.replace(/,/g, '').replace(/[^\d.]/g, '');
+      let parts = val.split('.');
+      if(parts.length>2) val = parts[0]+'.'+parts.slice(1).join('');
+      if(val) {
+        let [main, dec] = val.split('.');
+        main = (+main).toLocaleString('th-TH');
+        input.value = dec !== undefined ? main + '.' + dec : main;
+      } else {
+        input.value = '';
+      }
+    }
+    // =============== FORM/UI BINDING ===============
     function autoBindCalculate() {
-      document.querySelectorAll('input, select').forEach(el => {
-        el.removeEventListener('input', calculateAll);
+      document.querySelectorAll('.qty, .totalPrice, #totalShip').forEach(input=>{
+        input.removeEventListener('input',calculateAll);
+        input.removeEventListener('input',formatInputNumberWithCommaBind);
+        input.addEventListener('input',formatInputNumberWithCommaBind);
+        input.addEventListener('input',calculateAll);
+      });
+      document.querySelectorAll('select').forEach(el => {
         el.removeEventListener('change', calculateAll);
-        el.addEventListener('input', calculateAll);
         el.addEventListener('change', calculateAll);
       });
     }
+    function formatInputNumberWithCommaBind(e){ formatInputNumberWithComma(e.target); }
+
     window.addEventListener('DOMContentLoaded', () => {
       togglePriceVAT();
       autoBindCalculate();
@@ -111,9 +198,8 @@
     const totalShipInput = document.getElementById('totalShip');
     const shipError = document.getElementById('shipError');
     const noShipCheckbox = document.getElementById('noShip');
-
     function validateShipping() {
-      const val = parseFloat(totalShipInput.value);
+      const val = parseFloat(totalShipInput.value.replace(/,/g,''));
       if (noShipCheckbox.checked || (!isNaN(val) && val > 0)) {
         shipError.style.display = 'none';
         totalShipInput.classList.remove('error');
@@ -127,7 +213,6 @@
       totalShipInput.disabled = noShipCheckbox.checked;
       validateShipping();
     });
-
     function updateIndices() {
       document.querySelectorAll('#calcTable tbody tr').forEach((row, idx) => {
         row.querySelector('.index').innerText = idx + 1;
@@ -140,29 +225,51 @@
       autoBindCalculate();
       calculateAll();
     }
+    function addRow() {
+      const tbody = document.querySelector('#calcTable tbody');
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td class="index"></td>
+        <td><input type="text" class="qty" placeholder="จำนวน" min="1"></td>
+        <td><input type="text" class="totalPrice" placeholder="ราคารวม/รายการ" step="0.01" min="0"></td>
+        <td class="shipRow">-</td>
+        <td class="shipShare">-</td>
+        <td class="result hide-result">-</td>
+        <td><button class="btn-delete" onclick="deleteRow(this)" title="ลบ">ลบ</button></td>
+      `;
+      tbody.appendChild(newRow);
+      autoBindCalculate();
+      updateIndices();
+      calculateAll();
+    }
+    function clearAll() {
+      document.getElementById('billType').value='cash'; togglePriceVAT();
+      document.getElementById('priceVAT').value='exclusive'; noShipCheckbox.checked=false;
+      totalShipInput.disabled=false; totalShipInput.value='';
+      document.querySelectorAll('.error').forEach(el=>el.classList.remove('error'));
+      document.querySelectorAll('#calcTable tbody tr').forEach(row=>{
+        row.querySelector('.qty').value=''; row.querySelector('.totalPrice').value='';
+        row.querySelector('.shipRow').innerText='-'; row.querySelector('.shipShare').innerText='-'; 
+        let resultCell = row.querySelector('.result');
+        resultCell.innerText='-'; resultCell.classList.add('hide-result');
+      }); updateIndices();
+      autoBindCalculate();
+      calculateAll();
+    }
+
+    // =============== CALCULATION LOGIC ===============
     function calculateAll() {
       document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
       updateIndices();
       const billType = document.getElementById('billType').value;
       const priceVATMode = document.getElementById('priceVAT').value;
-      const totalShip = noShipCheckbox.checked ? 0 : (parseFloat(totalShipInput.value) || 0);
+      const totalShip = noShipCheckbox.checked ? 0 : (parseFloat(totalShipInput.value.replace(/,/g,'')) || 0);
       const rows = Array.from(document.querySelectorAll('#calcTable tbody tr'));
-      const qtys = rows.map(r => parseFloat(r.querySelector('.qty').value) || 0);
-      const prices = rows.map(r => parseFloat(r.querySelector('.totalPrice').value) || 0);
-      const sumQty = qtys.reduce((a,b) => a + b, 0);
-      const sumPrice = prices.reduce((a,b) => a + b, 0);
-      document.getElementById('summary').innerText =
-        `รวมจำนวน: ${sumQty} หน่วย • รวมราคารวม: ${sumPrice.toFixed(2)} บาท • ค่าขนส่ง: ${totalShip.toFixed(2)} บาท`;
+      const qtys = rows.map(r => parseFloat(r.querySelector('.qty').value.replace(/,/g,'')) || 0);
+      const prices = rows.map(r => parseFloat(r.querySelector('.totalPrice').value.replace(/,/g,'')) || 0);
       let vatFactor = 1;
       if (billType === 'vat') vatFactor = (priceVATMode === 'exclusive') ? 1.07 : 1;
       const perRowShip = rows.length > 0 ? totalShip / rows.length : 0;
-      const avgPrice = sumQty ? (sumPrice / sumQty).toFixed(2) : '0.00';
-      const avgShip = sumQty ? (totalShip / sumQty).toFixed(2) : '0.00';
-      document.getElementById('details').innerHTML =
-        `รายละเอียดการคำนวณ:<br>` +
-        `- ราคาเฉลี่ยต่อหน่วยก่อนค่าขนส่ง: ${avgPrice} บาท<br>` +
-        `- ค่าขนส่งเฉลี่ยต่อหน่วย: ${avgShip} บาท<br>` +
-        `- วิธีการกระจายค่าขนส่ง: หารตามจำนวนรายการ`;
       rows.forEach((row,i) => {
         const D = qtys[i];
         const E = prices[i];
@@ -176,54 +283,211 @@
           shipRowCell.innerText = '-';
           shipCell.innerText = '-';
           resultCell.innerText = '-';
-          resultCell.classList.add('hide-result'); // ซ่อนผลลัพธ์ถ้ายังไม่ครบ
+          resultCell.classList.add('hide-result');
           return;
         }
-        // ship/รายการ
-        shipRowCell.innerText = (Math.round((perRowShip+Number.EPSILON)*100)/100).toFixed(2);
-        // ship/หน่วย
+        shipRowCell.innerText = n2(perRowShip,2);
         const perItemShip = D > 0 ? perRowShip / D : 0;
-        shipCell.innerText = (Math.round((perItemShip+Number.EPSILON)*100)/100).toFixed(2);
-        // ต้นทุน/หน่วย
+        shipCell.innerText = n2(perItemShip,2);
         const net = D > 0 ? ((E * vatFactor) + perRowShip) / D : 0;
         if (D > 0 && E >= 0) {
-          resultCell.innerText = (Math.round((net+Number.EPSILON)*100)/100).toFixed(2);
-          resultCell.classList.remove('hide-result'); // แสดงผลลัพธ์ถ้าข้อมูลครบ
+          resultCell.innerText = n2(net,2);
+          resultCell.classList.remove('hide-result');
         } else {
           resultCell.innerText = '-';
           resultCell.classList.add('hide-result');
         }
       });
+      renderHistoryTableIfVisible(); // update history if showing
     }
-    function addRow() {
-      const tbody = document.querySelector('#calcTable tbody');
-      const newRow = document.createElement('tr');
-      newRow.innerHTML = `
-        <td class="index"></td>
-        <td><input type="number" class="qty" placeholder="กรอกจำนวนทั้งหมด" min="1"></td>
-        <td><input type="number" class="totalPrice" placeholder="กรอกราคารวมต่อรายการ (บาท)" step="0.01" min="0"></td>
-        <td class="shipRow">-</td>
-        <td class="shipShare">-</td>
-        <td class="result hide-result">-</td>
-        <td><button class="btn-delete" onclick="deleteRow(this)">ลบ</button></td>`;
-      tbody.appendChild(newRow);
-      updateIndices();
-      autoBindCalculate();
+
+    // =============== POPUP/ALERT/CONFIRM/TOAST ===============
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+      document.getElementById('popupBody').innerHTML = '';
     }
-    function clearAll() {
-      document.getElementById('billType').value='cash'; togglePriceVAT();
-      document.getElementById('priceVAT').value='exclusive'; noShipCheckbox.checked=false;
-      totalShipInput.disabled=false; totalShipInput.value='';
-      document.getElementById('summary').innerText=''; document.getElementById('details').innerHTML='';
-      document.querySelectorAll('.error').forEach(el=>el.classList.remove('error'));
-      document.querySelectorAll('#calcTable tbody tr').forEach(row=>{
-        row.querySelector('.qty').value=''; row.querySelector('.totalPrice').value='';
-        row.querySelector('.shipRow').innerText='-'; row.querySelector('.shipShare').innerText='-'; 
-        let resultCell = row.querySelector('.result');
-        resultCell.innerText='-'; resultCell.classList.add('hide-result');
-      }); updateIndices();
-      autoBindCalculate();
-      calculateAll();
+    function showAlert(msg) {
+      document.getElementById('popupBody').innerHTML = `<div style="font-size:1.16em;min-width:220px;text-align:center;padding:28px 0 22px 0;">${msg}</div>
+        <div style="text-align:center;margin-top:1.3em"><button onclick="closePopup()" style="padding:0.53em 2em;border:none;background:#007acc;color:#fff;border-radius:7px;font-size:1em;">ตกลง</button></div>`;
+      document.getElementById('popup').style.display = '';
+    }
+    function showToast(msg) {
+      document.getElementById('popupBody').innerHTML =
+        `<div class="toast">
+          <div style="font-size:2.3em;line-height:1;margin-bottom:0.1em;">✅</div>
+          <div style="font-size:1.25em;margin-bottom:0.14em;">${msg}</div>
+        </div>`;
+      document.getElementById('popup').style.display = '';
+      setTimeout(() => closePopup(), 1800);
+    }
+    function showConfirm(msg, yesFn) {
+      document.getElementById('popupBody').innerHTML = `<div style="font-size:1.17em;text-align:center;padding:19px 0 14px 0;">${msg}</div>
+        <div style="text-align:center;margin-top:1.4em">
+          <button onclick="closePopup()" style="padding:0.5em 2em;border:none;background:#aaa;color:#fff;border-radius:7px;font-size:1.07em;margin-right:1.2em;">ยกเลิก</button>
+          <button onclick="confirmYesAction()" style="padding:0.5em 2em;border:none;background:#007acc;color:#fff;border-radius:7px;font-size:1.07em;">ยืนยัน</button>
+        </div>`;
+      document.getElementById('popup').style.display = '';
+      window.__yesFn = yesFn;
+    }
+    function confirmYesAction() {
+      closePopup();
+      setTimeout(()=>{ window.__yesFn(); }, 90);
+    }
+
+    // =============== SAVE / LOAD / HISTORY ===============
+    function saveLog() {
+      // ตรวจสอบกรอกข้อมูลครบ
+      const incomplete = Array.from(document.querySelectorAll('.qty, .totalPrice')).some(input => !input.value || +input.value.replace(/,/g,'') < 0);
+      if (incomplete) {
+        showAlert("กรุณากรอกข้อมูลให้ครบถ้วนก่อนบันทึก");
+        return;
+      }
+      showConfirm("ยืนยันบันทึกผล?", () => {
+        const rows = Array.from(document.querySelectorAll('#calcTable tbody tr')).map(row => ({
+          qty: row.querySelector('.qty').value,
+          price: row.querySelector('.totalPrice').value,
+          shipRow: row.querySelector('.shipRow').innerText,
+          shipShare: row.querySelector('.shipShare').innerText,
+          result: row.querySelector('.result').innerText
+        }));
+        const billType = document.getElementById('billType').value;
+        const priceVAT = document.getElementById('priceVAT').value;
+        const totalShip = document.getElementById('totalShip').value;
+        const ts = new Date().toLocaleString();
+        const logObj = { rows, billType, priceVAT, totalShip, ts };
+        const logs = JSON.parse(localStorage.getItem('costLogs') || '[]');
+        logs.unshift(logObj);
+        localStorage.setItem('costLogs', JSON.stringify(logs));
+        showToast("บันทึกข้อมูลเรียบร้อยแล้ว!");
+        renderHistoryTableIfVisible();
+      });
+    }
+
+    // =============== HISTORY SECTION ===============
+    function toggleHistory() {
+      let el = document.getElementById('historySection');
+      if(el.classList.contains('hide')) {
+        el.classList.remove('hide');
+        renderHistoryTableIfVisible();
+        document.getElementById('historyBtn').innerText = '🕒 ซ่อนประวัติ';
+      } else {
+        el.classList.add('hide');
+        document.getElementById('historyBtn').innerText = '🕒 ดูประวัติ';
+      }
+    }
+    function renderHistoryTableIfVisible() {
+      let el = document.getElementById('historySection');
+      if(el.classList.contains('hide')) return;
+      const logs = JSON.parse(localStorage.getItem('costLogs') || '[]');
+      if(!logs.length) {
+        el.innerHTML = '<div class="history-header">ประวัติการคำนวณ</div><div>ยังไม่มีประวัติ</div>';
+        return;
+      }
+      let table = `<div class="history-header">ประวัติการคำนวณ (ล่าสุด 10 รายการ)</div>
+        <table class="history-table"><thead>
+        <tr>
+          <th>เวลา</th>
+          <th>ประเภทบิล</th>
+          <th>VAT</th>
+          <th>ค่าขนส่ง</th>
+          <th>จำนวน</th>
+          <th>ต้นทุน/หน่วย</th>
+          <th>ลบ</th>
+          <th>พิมพ์ใบเสร็จ</th>
+        </tr></thead><tbody>`;
+      logs.slice(0,10).forEach((log,idx) => {
+        let allcosts = log.rows.map(r=>n2(r.result,2)).join('<br>');
+        let qtys = log.rows.map(r=>n2(r.qty.replace(/,/g,''),0)).join('<br>');
+        table += `<tr>
+          <td>${log.ts}</td>
+          <td>${log.billType}</td>
+          <td>${log.priceVAT}</td>
+          <td>${n2(log.totalShip.replace(/,/g,''),2)}</td>
+          <td>${qtys}</td>
+          <td>${allcosts}</td>
+          <td><button onclick="deleteLog(${idx})" class="btn btn-delete">ลบ</button></td>
+          <td><button onclick="showPrintReceiptFromLog(${idx})" class="btn btn-print">🖨️</button></td>
+        </tr>`;
+      });
+      table += '</tbody></table>';
+      el.innerHTML = table;
+    }
+    function deleteLog(idx) {
+      showConfirm('ยืนยันลบประวัติรายการนี้?', ()=>{
+        let logs = JSON.parse(localStorage.getItem('costLogs') || '[]');
+        logs.splice(idx,1);
+        localStorage.setItem('costLogs', JSON.stringify(logs));
+        renderHistoryTableIfVisible();
+      });
+    }
+
+    // =============== PRINT RECEIPT STYLE ===============
+    function showPrintReceiptFromLog(idx) {
+      const logs = JSON.parse(localStorage.getItem('costLogs') || '[]');
+      if(!logs[idx]) return;
+      let log = logs[idx];
+      let ts = log.ts;
+      let billType = log.billType;
+      let priceVAT = log.priceVAT;
+      let totalShip = log.totalShip;
+      let itemsHtml = '';
+      log.rows.forEach((r,i)=>{
+        let q = r.qty;
+        let cost = r.result;
+        if(!q || isNaN(cost.replace(/,/g,'')) || cost==="-") return;
+        itemsHtml += `<div class="item"><span>${i+1}. Qty ${n2(q.replace(/,/g,''),0)}</span><span>${n2(cost.replace(/,/g,''),2)}</span></div>`;
+      });
+      let html = `<div class="receipt">
+        <div class="center">*** คำนวณต้นทุน ***</div>
+        <div>เวลา: ${ts}</div>
+        <div>ประเภทบิล: ${billType} (${priceVAT})</div>
+        <div>ค่าขนส่ง: ${n2(totalShip.replace(/,/g,''),2)} บาท</div>
+        <div class="hr"></div>
+        ${itemsHtml}
+        <div class="center" style="font-size:0.99em;margin-top:7px;">*****</div>
+      </div>
+      <div style="text-align:center;margin-top:1.1em;">
+        <button onclick="printReceiptFromLog(${idx})" style="background:#007acc;color:#fff;padding:0.57em 2em;border:none;border-radius:7px;font-size:1.09em;">พิมพ์จริง</button>
+        <button onclick="closePopup()" style="background:#aaa;color:#fff;padding:0.57em 2em;border:none;border-radius:7px;font-size:1.09em;margin-left:1em;">ยกเลิก</button>
+      </div>
+      <div style="text-align:center;color:#666;font-size:0.97em;margin-top:1em;">* เลือกเครื่องพิมพ์ใบเสร็จที่รองรับ<br>ก่อนกด “พิมพ์จริง”</div>
+      `;
+      document.getElementById('popupBody').innerHTML = html;
+      document.getElementById('popup').style.display = '';
+    }
+    function printReceiptFromLog(idx) {
+      const logs = JSON.parse(localStorage.getItem('costLogs') || '[]');
+      if(!logs[idx]) return;
+      let log = logs[idx];
+      let itemsHtml = '';
+      log.rows.forEach((r,i)=>{
+        let q = r.qty;
+        let cost = r.result;
+        if(!q || isNaN(cost.replace(/,/g,'')) || cost==="-") return;
+        itemsHtml += `<div class="item"><span>${i+1}. Qty ${n2(q.replace(/,/g,''),0)}</span><span>${n2(cost.replace(/,/g,''),2)}</span></div>`;
+      });
+      let html = `<div class="receipt">
+        <div class="center">*** คำนวณต้นทุน ***</div>
+        <div>เวลา: ${log.ts}</div>
+        <div>ประเภทบิล: ${log.billType} (${log.priceVAT})</div>
+        <div>ค่าขนส่ง: ${n2(log.totalShip.replace(/,/g,''),2)} บาท</div>
+        <div class="hr"></div>
+        ${itemsHtml}
+        <div class="center" style="font-size:0.99em;margin-top:7px;">*****</div>
+      </div>`;
+      let style = `<style>
+        body{font-family:Consolas,monospace;font-size:15px;margin:0;}
+        .receipt{width:340px;margin:auto;}
+        .center{text-align:center;}
+        .hr{border-top:1.2px dashed #444; margin:10px 0;}
+        .item{display:flex;justify-content:space-between;margin-bottom:3px;}
+      </style>`;
+      let printWin = window.open('', '', 'width=350,height=650');
+      printWin.document.write('<html><head>'+style+'</head><body>'+html+'</body></html>');
+      printWin.document.close();
+      printWin.focus();
+      setTimeout(()=>{ printWin.print(); }, 400);
+      closePopup();
     }
   </script>
 </body>
