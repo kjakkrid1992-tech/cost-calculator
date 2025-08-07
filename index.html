@@ -1,12 +1,10 @@
-<!-- Filename: calculator_v1.1.0.html -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>เครื่องคิดต้นทุน v1.1.0</title>
+  <title>เครื่องคิดต้นทุน v1.2.0</title>
   <style>
-    /* Reset & Base */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fa; color: #333; }
     .container { max-width: 900px; margin: 2rem auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 2rem; }
@@ -15,8 +13,6 @@
     label { display: block; margin-bottom: 0.75rem; font-weight: 500; }
     select, input { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
     select:focus, input:focus { outline: none; border-color: #007acc; }
-
-    /* Table Styling */
     .table-wrapper { overflow-x: auto; margin-bottom: 1.5rem; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 0.75rem; text-align: center; }
@@ -26,8 +22,6 @@
     .index { width: 50px; }
     .shipShare, .result { font-weight: 600; }
     .actions { width: 80px; }
-
-    /* Button Styling */
     .btn { display: inline-block; padding: 0.6rem 1.2rem; margin-right: 0.5rem; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.3s ease; }
     .btn-add { background: #28a745; color: #fff; }
     .btn-add:hover { background: #218838; }
@@ -38,8 +32,6 @@
     .btn-clear:hover { background: #c82333; }
     .btn-delete { background: #dc3545; color: #fff; padding: 0.4rem 0.8rem; }
     .btn-delete:hover { background: #c82333; }
-
-    /* Error and Summary */
     .error { border-color: #dc3545 !important; }
     .error-message { color: #dc3545; font-size: 0.9rem; margin-top: 0.25rem; display: none; }
     #summary { margin-top: 1.5rem; font-size: 1rem; font-weight: 500; }
@@ -49,14 +41,12 @@
 <body>
   <div class="container">
     <h2>เครื่องคิดต้นทุน (หลายรายการ)</h2>
-    <div class="version">Version: 1.1.0</div>
-
+    <div class="version">Version: 1.2.0</div>
     <label>ประเภทบิล:</label>
     <select id="billType">
       <option value="cash">เงินสด</option>
       <option value="vat">VAT</option>
     </select>
-
     <div id="priceVATLabel">
       <label>กรณี VAT: ราคาที่กรอกเป็น</label>
       <select id="priceVAT">
@@ -64,12 +54,10 @@
         <option value="inclusive">รวม VAT</option>
       </select>
     </div>
-
     <label>ค่าขนส่งรวมต่อบิล (บาท):</label>
     <input type="number" id="totalShip" placeholder="กรอกค่าขนส่งหรือเลือกไม่มีค่าขนส่ง">
     <div id="shipError" class="error-message">กรุณากรอกค่าขนส่ง &gt; 0 หรือเลือก 'ไม่มีค่าขนส่ง'</div>
     <label style="margin-top: 0.5rem;"><input type="checkbox" id="noShip"> บิลนี้ไม่มีค่าขนส่ง</label>
-
     <div class="table-wrapper">
       <table id="calcTable">
         <thead>
@@ -94,29 +82,22 @@
         </tbody>
       </table>
     </div>
-
     <button class="btn btn-add" onclick="addRow()">เพิ่มแถว</button>
     <button class="btn btn-calc" id="btnCalculate" onclick="calculateAll()" disabled>คำนวณทั้งหมด</button>
     <button class="btn btn-clear" onclick="clearAll()">ล้างข้อมูล</button>
-
     <div id="summary"></div>
     <div id="details"></div>
   </div>
-
   <script>
-    // VAT field toggle
     document.getElementById('billType').addEventListener('change', togglePriceVAT);
     function togglePriceVAT() {
       document.getElementById('priceVATLabel').style.display = (document.getElementById('billType').value === 'vat') ? 'block' : 'none';
     }
     togglePriceVAT();
-
     const totalShipInput = document.getElementById('totalShip');
     const shipError = document.getElementById('shipError');
     const noShipCheckbox = document.getElementById('noShip');
     const btnCalculate = document.getElementById('btnCalculate');
-
-    // Validate shipping input
     function validateShipping() {
       const val = parseFloat(totalShipInput.value);
       if (noShipCheckbox.checked || (!isNaN(val) && val > 0)) {
@@ -134,51 +115,39 @@
       totalShipInput.disabled = noShipCheckbox.checked;
       validateShipping();
     });
-
     function updateIndices() {
       document.querySelectorAll('#calcTable tbody tr').forEach((row, idx) => {
         row.querySelector('.index').innerText = idx + 1;
       });
     }
-
-    // Delete row function
     function deleteRow(button) {
       const row = button.closest('tr');
       row.remove();
       updateIndices();
     }
-
     function calculateAll() {
       document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
       updateIndices();
-
       const billType = document.getElementById('billType').value;
       const priceVATMode = document.getElementById('priceVAT').value;
       const totalShip = noShipCheckbox.checked ? 0 : (parseFloat(totalShipInput.value) || 0);
-
       const rows = Array.from(document.querySelectorAll('#calcTable tbody tr'));
       const qtys = rows.map(r => parseFloat(r.querySelector('.qty').value) || 0);
-      const sumQty = qtys.reduce((a,b) => a + b, 0);
       const prices = rows.map(r => parseFloat(r.querySelector('.totalPrice').value) || 0);
+      const sumQty = qtys.reduce((a,b) => a + b, 0);
       const sumPrice = prices.reduce((a,b) => a + b, 0);
-
-      // Summary
       document.getElementById('summary').innerText =
         `รวมจำนวน: ${sumQty} หน่วย • รวมราคารวม: ${sumPrice.toFixed(2)} บาท • ค่าขนส่ง: ${totalShip.toFixed(2)} บาท`;
-
-      // Details breakdown
+      let vatFactor = 1;
+      if (billType === 'vat') vatFactor = (priceVATMode === 'exclusive') ? 1.07 : 1;
+      const perRowShip = rows.length > 0 ? totalShip / rows.length : 0;
       const avgPrice = sumQty ? (sumPrice / sumQty).toFixed(2) : '0.00';
       const avgShip = sumQty ? (totalShip / sumQty).toFixed(2) : '0.00';
       document.getElementById('details').innerHTML =
         `รายละเอียดการคำนวณ:<br>` +
         `- ราคาเฉลี่ยต่อหน่วยก่อนค่าขนส่ง: ${avgPrice} บาท<br>` +
-        `- ค่าขนส่งเฉลี่ยต่อหน่วย: ${avgShip} บาท`;
-
-      // VAT factor
-      let vatFactor = 1;
-      if (billType === 'vat') vatFactor = (priceVATMode === 'exclusive') ? 1.07 : 1;
-
-      // Per row calculation
+        `- ค่าขนส่งเฉลี่ยต่อหน่วย: ${avgShip} บาท<br>` +
+        `- วิธีการกระจายค่าขนส่ง: หารตามจำนวนรายการ`;
       rows.forEach((row,i) => {
         const D = qtys[i];
         const E = prices[i];
@@ -187,16 +156,15 @@
         let valid = true;
         if (D <= 0) { row.querySelector('.qty').classList.add('error'); valid = false; }
         if (E < 0) { row.querySelector('.totalPrice').classList.add('error'); valid = false; }
-        if (!valid || sumQty === 0) {
+        if (!valid || rows.length === 0) {
           shipCell.innerText = '-'; resultCell.innerText = '-'; return;
         }
-        const shipShare = totalShip * (D / sumQty);
-        shipCell.innerText = (Math.round((shipShare+Number.EPSILON)*100)/100).toFixed(2);
-        const net = ((E*vatFactor)+shipShare)/D;
+        const perItemShip = perRowShip / D;
+        shipCell.innerText = (Math.round((perItemShip+Number.EPSILON)*100)/100).toFixed(2);
+        const net = ((E * vatFactor) + perRowShip) / D;
         resultCell.innerText = (Math.round((net+Number.EPSILON)*100)/100).toFixed(2);
       });
     }
-
     function addRow() {
       const tbody = document.querySelector('#calcTable tbody');
       const newRow = document.createElement('tr');
@@ -206,12 +174,10 @@
         <td><input type="number" class="totalPrice" placeholder="กรอกราคารวมต่อรายการ" step="0.01" min="0"></td>
         <td class="shipShare">-</td>
         <td class="result">-</td>
-        <td><button class="btn-delete" onclick="deleteRow(this)">ลบ</button></td>
-      `;
+        <td><button class="btn-delete" onclick="deleteRow(this)">ลบ</button></td>`;
       tbody.appendChild(newRow);
       updateIndices();
     }
-
     function clearAll() {
       document.getElementById('billType').value='cash'; togglePriceVAT();
       document.getElementById('priceVAT').value='exclusive'; noShipCheckbox.checked=false;
