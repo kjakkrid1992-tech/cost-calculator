@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>เครื่องคิดต้นทุน v1.2.0</title>
+  <title>เครื่องคิดต้นทุน v1.2.2</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7fa; color: #333; }
-    .container { max-width: 900px; margin: 2rem auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 2rem; }
+    .container { max-width: 950px; margin: 2rem auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 2rem; }
     h2 { margin-bottom: 0.5rem; color: #007acc; }
     .version { font-size: 0.9rem; color: #666; margin-bottom: 1rem; }
     label { display: block; margin-bottom: 0.75rem; font-weight: 500; }
@@ -20,14 +20,11 @@
     tbody tr:nth-child(odd) { background: #fafafa; }
     tbody tr:hover { background: #e6f7ff; }
     .index { width: 50px; }
-    .shipShare, .result { font-weight: 600; }
+    .shipRow, .shipShare, .result { font-weight: 600; }
     .actions { width: 80px; }
     .btn { display: inline-block; padding: 0.6rem 1.2rem; margin-right: 0.5rem; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.3s ease; }
     .btn-add { background: #28a745; color: #fff; }
     .btn-add:hover { background: #218838; }
-    .btn-calc { background: #007acc; color: #fff; }
-    .btn-calc:disabled { background: #ccc; cursor: not-allowed; }
-    .btn-calc:hover:enabled { background: #005fa3; }
     .btn-clear { background: #dc3545; color: #fff; }
     .btn-clear:hover { background: #c82333; }
     .btn-delete { background: #dc3545; color: #fff; padding: 0.4rem 0.8rem; }
@@ -36,12 +33,13 @@
     .error-message { color: #dc3545; font-size: 0.9rem; margin-top: 0.25rem; display: none; }
     #summary { margin-top: 1.5rem; font-size: 1rem; font-weight: 500; }
     #details { margin-top: 0.5rem; font-size: 0.9rem; color: #555; }
+    .hide-result { display: none; }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>เครื่องคิดต้นทุน (หลายรายการ)</h2>
-    <div class="version">Version: 1.2.0</div>
+    <div class="version">Version: 1.2.2</div>
     <label>ประเภทบิล:</label>
     <select id="billType">
       <option value="cash">เงินสด</option>
@@ -64,9 +62,10 @@
           <tr>
             <th class="index">ลำดับ</th>
             <th>จำนวนทั้งหมด</th>
-            <th>ราคารวมต่อรายการ</th>
-            <th>ค่าขนส่งต่อรายการ</th>
-            <th>ผลลัพธ์/หน่วย (บาท)</th>
+            <th>ราคารวมต่อรายการ (บาท)</th>
+            <th>ค่าขนส่ง/รายการ (บาท)</th>
+            <th>ค่าขนส่ง/หน่วย (บาท)</th>
+            <th>ต้นทุน/หน่วย (บาท)</th>
             <th class="actions">จัดการ</th>
           </tr>
         </thead>
@@ -74,40 +73,53 @@
           <tr>
             <td class="index">1</td>
             <td><input type="number" class="qty" placeholder="กรอกจำนวนทั้งหมด" min="1"></td>
-            <td><input type="number" class="totalPrice" placeholder="กรอกราคารวมต่อรายการ" step="0.01" min="0"></td>
+            <td><input type="number" class="totalPrice" placeholder="กรอกราคารวมต่อรายการ (บาท)" step="0.01" min="0"></td>
+            <td class="shipRow">-</td>
             <td class="shipShare">-</td>
-            <td class="result">-</td>
+            <td class="result hide-result">-</td>
             <td><button class="btn-delete" onclick="deleteRow(this)">ลบ</button></td>
           </tr>
         </tbody>
       </table>
     </div>
     <button class="btn btn-add" onclick="addRow()">เพิ่มแถว</button>
-    <button class="btn btn-calc" id="btnCalculate" onclick="calculateAll()" disabled>คำนวณทั้งหมด</button>
     <button class="btn btn-clear" onclick="clearAll()">ล้างข้อมูล</button>
     <div id="summary"></div>
     <div id="details"></div>
   </div>
   <script>
+    // --- Auto Calculate Binding ---
+    function autoBindCalculate() {
+      document.querySelectorAll('input, select').forEach(el => {
+        el.removeEventListener('input', calculateAll);
+        el.removeEventListener('change', calculateAll);
+        el.addEventListener('input', calculateAll);
+        el.addEventListener('change', calculateAll);
+      });
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+      togglePriceVAT();
+      autoBindCalculate();
+      validateShipping();
+      calculateAll();
+    });
+
     document.getElementById('billType').addEventListener('change', togglePriceVAT);
     function togglePriceVAT() {
       document.getElementById('priceVATLabel').style.display = (document.getElementById('billType').value === 'vat') ? 'block' : 'none';
     }
-    togglePriceVAT();
     const totalShipInput = document.getElementById('totalShip');
     const shipError = document.getElementById('shipError');
     const noShipCheckbox = document.getElementById('noShip');
-    const btnCalculate = document.getElementById('btnCalculate');
+
     function validateShipping() {
       const val = parseFloat(totalShipInput.value);
       if (noShipCheckbox.checked || (!isNaN(val) && val > 0)) {
         shipError.style.display = 'none';
         totalShipInput.classList.remove('error');
-        btnCalculate.disabled = false;
       } else {
         shipError.style.display = 'block';
         totalShipInput.classList.add('error');
-        btnCalculate.disabled = true;
       }
     }
     totalShipInput.addEventListener('input', validateShipping);
@@ -115,6 +127,7 @@
       totalShipInput.disabled = noShipCheckbox.checked;
       validateShipping();
     });
+
     function updateIndices() {
       document.querySelectorAll('#calcTable tbody tr').forEach((row, idx) => {
         row.querySelector('.index').innerText = idx + 1;
@@ -124,6 +137,8 @@
       const row = button.closest('tr');
       row.remove();
       updateIndices();
+      autoBindCalculate();
+      calculateAll();
     }
     function calculateAll() {
       document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
@@ -151,18 +166,33 @@
       rows.forEach((row,i) => {
         const D = qtys[i];
         const E = prices[i];
+        const shipRowCell = row.querySelector('.shipRow');
         const shipCell = row.querySelector('.shipShare');
         const resultCell = row.querySelector('.result');
         let valid = true;
         if (D <= 0) { row.querySelector('.qty').classList.add('error'); valid = false; }
         if (E < 0) { row.querySelector('.totalPrice').classList.add('error'); valid = false; }
         if (!valid || rows.length === 0) {
-          shipCell.innerText = '-'; resultCell.innerText = '-'; return;
+          shipRowCell.innerText = '-';
+          shipCell.innerText = '-';
+          resultCell.innerText = '-';
+          resultCell.classList.add('hide-result'); // ซ่อนผลลัพธ์ถ้ายังไม่ครบ
+          return;
         }
-        const perItemShip = perRowShip / D;
+        // ship/รายการ
+        shipRowCell.innerText = (Math.round((perRowShip+Number.EPSILON)*100)/100).toFixed(2);
+        // ship/หน่วย
+        const perItemShip = D > 0 ? perRowShip / D : 0;
         shipCell.innerText = (Math.round((perItemShip+Number.EPSILON)*100)/100).toFixed(2);
-        const net = ((E * vatFactor) + perRowShip) / D;
-        resultCell.innerText = (Math.round((net+Number.EPSILON)*100)/100).toFixed(2);
+        // ต้นทุน/หน่วย
+        const net = D > 0 ? ((E * vatFactor) + perRowShip) / D : 0;
+        if (D > 0 && E >= 0) {
+          resultCell.innerText = (Math.round((net+Number.EPSILON)*100)/100).toFixed(2);
+          resultCell.classList.remove('hide-result'); // แสดงผลลัพธ์ถ้าข้อมูลครบ
+        } else {
+          resultCell.innerText = '-';
+          resultCell.classList.add('hide-result');
+        }
       });
     }
     function addRow() {
@@ -171,23 +201,29 @@
       newRow.innerHTML = `
         <td class="index"></td>
         <td><input type="number" class="qty" placeholder="กรอกจำนวนทั้งหมด" min="1"></td>
-        <td><input type="number" class="totalPrice" placeholder="กรอกราคารวมต่อรายการ" step="0.01" min="0"></td>
+        <td><input type="number" class="totalPrice" placeholder="กรอกราคารวมต่อรายการ (บาท)" step="0.01" min="0"></td>
+        <td class="shipRow">-</td>
         <td class="shipShare">-</td>
-        <td class="result">-</td>
+        <td class="result hide-result">-</td>
         <td><button class="btn-delete" onclick="deleteRow(this)">ลบ</button></td>`;
       tbody.appendChild(newRow);
       updateIndices();
+      autoBindCalculate();
     }
     function clearAll() {
       document.getElementById('billType').value='cash'; togglePriceVAT();
       document.getElementById('priceVAT').value='exclusive'; noShipCheckbox.checked=false;
-      totalShipInput.disabled=false; totalShipInput.value=''; btnCalculate.disabled=true;
+      totalShipInput.disabled=false; totalShipInput.value='';
       document.getElementById('summary').innerText=''; document.getElementById('details').innerHTML='';
       document.querySelectorAll('.error').forEach(el=>el.classList.remove('error'));
       document.querySelectorAll('#calcTable tbody tr').forEach(row=>{
         row.querySelector('.qty').value=''; row.querySelector('.totalPrice').value='';
-        row.querySelector('.shipShare').innerText='-'; row.querySelector('.result').innerText='-';
+        row.querySelector('.shipRow').innerText='-'; row.querySelector('.shipShare').innerText='-'; 
+        let resultCell = row.querySelector('.result');
+        resultCell.innerText='-'; resultCell.classList.add('hide-result');
       }); updateIndices();
+      autoBindCalculate();
+      calculateAll();
     }
   </script>
 </body>
