@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>เครื่องคิดต้นทุน v1.7.8</title>
+  <style>
+    :root{
+      --primary:#0c66e4; --ok:#1f9751; --danger:#d32f2f;
+      --muted:#64748b; --bg:#f5f7fb; --card:#fff; --accent:#f43f5e;
+      --border:#e2e8f0; --ink:#0b1220
+    }
+    *{box-sizing:border-box}
+    body{font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;background:var(--bg);color:var(--ink);margin:0}
+    .container{max-width:980px;margin:1.2rem auto;background:var(--card);border-radius:16px;box-shadow:0 2px 18px #0002;padding:1.1rem 1.1rem 1.4rem}
+    @media(min-width:720px){.container{padding:1.6rem 1.8rem 1.8rem}}
+    h2{margin:.1rem 0 .2rem;color:var(--primary);font-size:1.6rem}
+    .version{font-size:.88rem;color:#94a3b8;margin-bottom:.6rem}
+    label{margin:.35rem 0 .25rem;display:block;font-weight:600}
+    select,input[type=text]{padding:.45rem .6rem;border:1px solid #cbd5e1;border-radius:10px;font-size:.98rem;width:100%}
+    select:focus,input:focus{outline:none;border-color:var(--primary);background:#eef7ff}
+
+    /* Top inventory bar */
+    .topbar{display:flex;gap:.5rem;align-items:center;margin:.6rem 0 .8rem}
+    .status{margin-left:auto;font-size:.9rem;color:#475569}
+
+    /* Buttons */
+    .btn{display:inline-flex;gap:.45rem;align-items:center;justify-content:center;
+      padding:.46rem .9rem;border:1px solid var(--border);border-radius:10px;
+      font-size:.96rem;cursor:pointer;font-weight:600;background:#fff;color:#0f172a;transition:.12s}
+    .btn-primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .btn-success{background:var(--ok);color:#fff;border-color:var(--ok)}
+    .btn-danger-solid{background:var(--danger);color:#fff;border-color:var(--danger)}
+    .btn-outline{background:#fff;color:#0f172a}
+    .btn-link{background:transparent;border-color:transparent;color:#1f2937;text-decoration:underline;text-underline-offset:2px}
+    .btn[disabled]{opacity:.55;cursor:not-allowed}
+    .btn:active{transform:translateY(1px)}
+    /* Hover (contrast) */
+    .btn:hover{background:#f1f5ff;color:#0f172a;border-color:#bcd0ff}
+    .btn-outline:hover{background:#edf2ff;color:#0b1220;border-color:#94b5ff}
+    .btn-primary:hover{background:#0a58ca;border-color:#0a58ca}
+    .btn-success:hover{background:#197a43;border-color:#197a43}
+    .btn-danger-solid:hover{background:#b52525;border-color:#b52525}
+    .btn-link:hover{background:#eef2ff}
+    /* Focus (visible) */
+    .btn:focus-visible{outline:2px solid #94b5ff;outline-offset:2px}
+    .spinner{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:spin .6s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Table (COMPACT) */
+    .table-wrapper{overflow-x:auto;margin-bottom:.35rem}
+    table{width:100%;border-collapse:collapse;font-size:.95rem;min-width:760px}
+    th,td{padding:.42rem .25rem;text-align:center}
+    th{background:#0c66e4;color:#fff;font-weight:800}
+    tbody tr:nth-child(odd){background:#f9fbff}
+    tbody tr:hover{background:#eef6ff}
+    .index{width:48px}.actions{width:78px}
+    td input[type="text"]{width:95%;text-align:center;margin:0 auto;display:block;font-size:.95rem;padding:.36rem .3rem;border-radius:8px}
+    .text-left{text-align:left}.product{min-width:230px;max-width:440px}
+    .qty{min-width:64px;max-width:110px}.totalPrice{min-width:96px;max-width:150px}
+    .btn-delete{background:var(--danger);border:1px solid var(--danger);color:#fff;padding:.28rem .6rem;border-radius:8px;font-weight:600;cursor:pointer}
+    .btn-delete:hover{filter:brightness(.96)}
+    .error{border-color:var(--danger)!important}
+    .error-message{color:var(--danger);font-size:.9rem;margin-top:.15rem;display:none}
+    .hide-result{display:none}
+
+    /* Bottom action bar */
+    .table-actions{display:flex;justify-content:space-between;gap:.5rem;align-items:center;margin-top:.45rem}
+    .table-actions .left,.table-actions .right{display:flex;gap:.5rem;flex-wrap:wrap}
+    .btn-add{background:#fff;border-color:#cbd5e1;color:#0f172a}
+    .btn-clear{background:#fff;border-color:#cbd5e1;color:#0f172a}
+
+    /* New row flash */
+    .flash{animation:rowflash 1.2s ease 1}
+    @keyframes rowflash{0%{background:#fff4e5}100%{background:transparent}}
+
+    /* Toast */
+    .toast{animation:fadein .25s;font-size:.95rem;padding:16px 18px;border-radius:10px;color:#0f5132;background:#d1e7dd;border:1px solid #badbcc;box-shadow:0 2px 18px rgba(0,0,0,.08);margin:16px auto;text-align:center;min-width:220px}
+    @keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+    /* AutoComplete portal */
+    .ac-portal{position:fixed;z-index:9999;left:0;top:0;width:0;height:0}
+    .ac-list{max-height:280px;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 28px rgba(18,41,76,.12)}
+    .ac-item{padding:.52rem .75rem;cursor:pointer}
+    .ac-item:hover,.ac-item.active{background:#fff7f8;border-left:3px solid var(--accent)}
+    .ac-title{font-weight:700;color:#111827;line-height:1.2}
+    .ac-sub{margin-top:.06rem;font-size:.84rem;color:var(--muted)}
+    .ac-empty{padding:.6rem .75rem;color:#64748b}
+    .hl{background:#ffedd5}
+
+    /* History (COMPACT) */
+    .history-header{font-weight:700;margin:.8rem 0 .45rem;font-size:1rem}
+    .history-table{width:100%;border-collapse:collapse;font-size:.92rem}
+    .history-table th,.history-table td{border:1px solid #e7e8f3;padding:.42rem .35rem}
+    .history-table th{background:#e9f5ff;color:#033}
+    .history-table .namecol{text-align:left}
+
+    /* Print */
+    .receipt{font-family:Consolas,monospace;font-size:14px;width:320px;margin:auto;background:#fff;border-radius:9px;border:1.7px solid #eee;box-shadow:0 0 14px #0001;padding:16px}
+    .receipt .center{text-align:center}.receipt .hr{border-top:1.2px dashed #888;margin:8px 0 10px}.receipt .item{display:flex;justify-content:space-between;margin-bottom:2px}
+    @media print{.container,.table-actions,#popup{display:none!important}body{background:#fff}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>เครื่องคิดต้นทุน (หลายรายการ)</h2>
+    <div class="version">Version: 1.7.8</div>
+
+    <!-- ฟอร์มบน -->
+    <label>ประเภทบิล:
+      <select id="billType">
+        <option value="cash">เงินสด</option>
+        <option value="vat">VAT</option>
+      </select>
+    </label>
+    <div id="priceVATLabel">
+      <label>กรณี VAT: ราคาที่กรอกเป็น
+        <select id="priceVAT">
+          <option value="exclusive">ยังไม่รวม VAT</option>
+          <option value="inclusive">รวม VAT</option>
+        </select>
+      </label>
+    </div>
+
+    <label>ค่าขนส่งรวมต่อบิล (บาท):</label>
+    <input type="text" id="totalShip" placeholder="กรอกค่าขนส่งหรือเลือกไม่มีค่าขนส่ง" inputmode="decimal">
+    <div id="shipError" class="error-message">กรุณากรอกค่าขนส่ง > 0 หรือเลือก 'ไม่มีค่าขนส่ง'</div>
+    <label style="margin-top:.3rem;"><input type="checkbox" id="noShip"> บิลนี้ไม่มีค่าขนส่ง</label>
+
+    <!-- แถบจัดการ Inventory -->
+    <div class="topbar">
+      <button class="btn btn-outline" onclick="syncInventory()">ซิงก์ Inventory (GitHub)</button>
+      <button class="btn btn-danger-solid" onclick="clearInventory()">ล้าง Inventory</button>
+      <div class="status"><span id="invStatus">Inventory: ยังไม่โหลด</span></div>
+    </div>
+
+    <!-- ตารางกรอก (COMPACT) -->
+    <div class="table-wrapper">
+      <table id="calcTable">
+        <thead>
+          <tr>
+            <th class="index">ลำดับ</th>
+            <th>ค้นหาสินค้า<br><span style="font-weight:400">(Barcode / SKU / Name)</span></th>
+            <th>จำนวน</th>
+            <th>ราคารวม/รายการ (บาท)</th>
+            <th>ค่าขนส่ง/รายการ (บาท)</th>
+            <th>ค่าขนส่ง/หน่วย (บาท)</th>
+            <th>ต้นทุน/หน่วย (บาท)</th>
+            <th class="actions">ลบ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="index">1</td>
+            <td><input type="text" class="product text-left" placeholder="พิมพ์/สแกน Barcode หรือพิมพ์ชื่อ/รหัส SKU เพื่อค้นหา"></td>
+            <td><input type="text" class="qty" placeholder="จำนวน" inputmode="numeric" pattern="[0-9]*"></td>
+            <td><input type="text" class="totalPrice" placeholder="ราคารวม/รายการ" inputmode="decimal"></td>
+            <td class="shipRow">-</td>
+            <td class="shipShare">-</td>
+            <td class="result hide-result">-</td>
+            <td><button class="btn-delete" onclick="deleteRow(this)" title="ลบ">ลบ</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ปุ่มใต้ตาราง -->
+    <div class="table-actions">
+      <div class="left">
+        <button class="btn btn-add" onclick="addRow()">เพิ่มแถว</button>
+        <button class="btn btn-clear" onclick="clearAll()">ล้างข้อมูล</button>
+      </div>
+      <div class="right">
+        <button class="btn btn-link" id="historyBtn" onclick="toggleHistory()">ซ่อนประวัติ</button>
+        <button class="btn btn-primary" id="saveBtn" onclick="saveLog()"><span>บันทึกผล</span></button>
+      </div>
+    </div>
+
+    <!-- ประวัติ: โชว์เป็นค่าเริ่มต้น -->
+    <div id="historySection"></div>
+  </div>
+
+  <!-- Popup / Toast -->
+  <div id="popup" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.25)">
+    <div id="popupContent" style="max-width:520px;margin:8vh auto;background:#fff;border-radius:14px;box-shadow:0 0 30px #0002;padding:1em 1em 1.1em;position:relative">
+      <button onclick="closePopup()" class="btn btn-outline" style="position:absolute;top:10px;right:12px">ปิด</button>
+      <div id="popupBody"></div>
+    </div>
+  </div>
+  <div id="acPortal" class="ac-portal"></div>
+
+  <script>
+    /* ===== CONFIG / STATE ===== */
+    const HISTORY_LIMIT=200, INV_KEY='inventoryDataV1';
+    let INVENTORY=[];
+
+    // Source for auto-sync (GitHub raw)
+    const INVENTORY_SOURCE_URL='https://raw.githubusercontent.com/kjakkrid1992-tech/loyverse-export-public/main/data/loyverse-price-latest.csv';
+
+    /* ===== I18N mapping ===== */
+    function i18nBillType(v){
+      if(v==='cash') return 'cash (เงินสด)';
+      if(v==='vat')  return 'VAT (ภาษีมูลค่าเพิ่ม)';
+      return v||'';
+    }
+    function i18nVatMode(v){
+      if(v==='exclusive') return 'exclusive (ยังไม่รวม VAT)';
+      if(v==='inclusive') return 'inclusive (รวม VAT)';
+      return v||'';
+    }
+
+    /* ===== Button loading helper ===== */
+    function setLoading(btn, on=true, labelWhenOff='บันทึกผล'){
+      if(on){ btn.disabled=true; btn.dataset.label=btn.innerHTML; btn.innerHTML=`<span class="spinner"></span><span>กำลังบันทึก...</span>`; }
+      else { btn.disabled=false; btn.innerHTML=labelWhenOff; }
+    }
+
+    /* ===== INVENTORY ===== */
+    function setInvStatus(t){ document.getElementById('invStatus').innerText='Inventory: '+t; }
+    (function initInventoryFromLocal(){
+      try{ const raw=localStorage.getItem(INV_KEY); if(raw){ const arr=JSON.parse(raw); if(Array.isArray(arr)){ INVENTORY=arr; setInvStatus(`โหลดแล้ว ${INVENTORY.length.toLocaleString('th-TH')} รายการ`); } } }catch{}
+    })();
+    function clearInventory(){ INVENTORY=[]; localStorage.removeItem(INV_KEY); setInvStatus('ยังไม่โหลด'); showToast('ล้างข้อมูล Inventory แล้ว'); }
+    function saveInventoryToLocal(){ try{ localStorage.setItem(INV_KEY, JSON.stringify(INVENTORY)); setInvStatus(`โหลดแล้ว ${INVENTORY.length.toLocaleString('th-TH')} รายการ`);}catch{ setInvStatus('บันทึกไม่สำเร็จ (พื้นที่เต็ม)'); } }
+
+    // CSV helper (manual import is not shown in UI but kept for completeness)
+    function loadInventoryCSV(evt){
+      const f=evt.target?.files?.[0]; if(!f) return; const r=new FileReader();
+      r.onload=(e)=>{ try{
+        const rows=parseCSV(e.target.result||''); if(!rows.length) throw new Error('ไฟล์ว่าง');
+        const headers=rows[0].map(h=>(h||'').toString().trim());
+        const idx={ sku:findHeader(headers,['sku','รหัสสินค้า']), barcode:findHeader(headers,['barcode','bar code','บาร์โค้ด','บาร์โค๊ด']), name:findHeader(headers,['item name','name','ชื่อสินค้า','สินค้า','item']) };
+        if(idx.sku===-1 && idx.barcode===-1 && idx.name===-1) throw new Error('ต้องมีคอลัมน์อย่างน้อย 1: SKU / Barcode / Name');
+        const list=[];
+        for(let i=1;i<rows.length;i++){ const r=rows[i]; if(!r||!r.length) continue;
+          const sku=idx.sku>-1?(r[idx.sku]||'').toString().trim():'';
+          const barcode=idx.barcode>-1?(r[idx.barcode]||'').toString().trim():'';
+          const name=idx.name>-1?(r[idx.name]||'').toString().trim():'';
+          if(sku||barcode||name) list.push({barcode,sku,name});
+        }
+        INVENTORY=list; saveInventoryToLocal(); showToast(`นำเข้า Inventory สำเร็จ: ${INVENTORY.length.toLocaleString('th-TH')} รายการ`);
+      }catch(err){ showAlert('ไม่สามารถอ่าน CSV: '+err.message); } finally{ evt.target.value=''; } };
+      r.readAsText(f,'utf-8');
+    }
+
+    async function syncInventory(auto=false){
+      try{
+        setInvStatus('กำลังซิงก์จาก GitHub...');
+        const resp=await fetch(INVENTORY_SOURCE_URL,{cache:'no-store'});
+        if(!resp.ok) throw new Error('HTTP '+resp.status);
+        const text=await resp.text();
+        const rows=parseCSV(text)||[];
+        if(!rows.length) throw new Error('ไฟล์ว่างหรือรูปแบบไม่ถูกต้อง');
+        const headers=rows[0].map(h=>(h||'').toString().trim());
+        const idx={ sku:findHeader(headers,['sku','variant sku','item code','รหัสสินค้า']), barcode:findHeader(headers,['barcode','bar code','บาร์โค้ด','บาร์โค๊ด']), name:findHeader(headers,['item name','name','title','ชื่อสินค้า','สินค้า','item']) };
+        if(idx.sku===-1 && idx.barcode===-1 && idx.name===-1) throw new Error('ไม่พบคอลัมน์ที่รองรับ (SKU/Barcode/Name)');
+        const list=[]; for(let i=1;i<rows.length;i++){ const r=rows[i]; if(!r||!r.length) continue; const sku=idx.sku>-1?(r[idx.sku]||'').toString().trim():''; const barcode=idx.barcode>-1?(r[idx.barcode]||'').toString().trim():''; const name=idx.name>-1?(r[idx.name]||'').toString().trim():''; if(sku||barcode||name) list.push({barcode,sku,name}); }
+        INVENTORY=list; saveInventoryToLocal();
+        setInvStatus(`ซิงก์แล้ว ${INVENTORY.length.toLocaleString('th-TH')} รายการ • ${nowStamp()}`);
+        if(!auto) showToast('ซิงก์ Inventory สำเร็จ');
+      }catch(err){
+        console.error(err);
+        setInvStatus('ซิงก์ไม่สำเร็จ');
+        showAlert('ซิงก์ Inventory ไม่สำเร็จ:<br>'+err.message+'<br><small>แหล่งข้อมูล: GitHub (raw)</small>');
+      }
+    }
+
+    function findHeader(headers,cands){ const low=headers.map(h=>h.toLowerCase()); for(const c of cands){ const i=low.findIndex(h=>h===c||h.includes(c)); if(i>-1) return i; } return -1; }
+    function parseCSV(text){
+      const rows=[]; let i=0,cur='',row=[],inq=false;
+      while(i<text.length){ const ch=text[i];
+        if(inq){ if(ch=='"'){ if(text[i+1]=='"'){cur+='"';i++;} else inq=false; } else cur+=ch; }
+        else{ if(ch=='"') inq=true; else if(ch==','){ row.push(cur); cur=''; } else if(ch=='\r'){ } else if(ch=='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; } else cur+=ch; }
+        i++;
+      }
+      row.push(cur); rows.push(row);
+      return rows.filter(r=>r.length && r.some(x=>(x||'').toString().trim()!=''));
+    }
+
+    /* ===== UTIL ===== */
+    function n2(num,fix=2){ if(isNaN(num)||num==='-'||num==='') return '-'; return (+num).toLocaleString('th-TH',{minimumFractionDigits:fix,maximumFractionDigits:fix}); }
+    function nowStamp(){ return new Date().toLocaleString('th-TH'); }
+    function popupVisible(){ return document.getElementById('popup').style.display === ''; }
+    const escapeReg=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+
+    /* ===== Formatters ===== */
+    function formatMoneyInput(inp){ let val=inp.value.replace(/,/g,'').replace(/[^\d.]/g,''); const parts=val.split('.'); if(parts.length>2) val=parts[0]+'.'+parts.slice(1).join(''); if(val){ let [m,d]=val.split('.'); m=(+m).toLocaleString('th-TH'); inp.value=d!==undefined?m+'.'+d:m; } else inp.value=''; }
+    function formatQtyInput(inp){ let val=inp.value.replace(/[^0-9]/g,''); val=val.replace(/^0+(\d)/,'$1'); inp.value=val? (+val).toLocaleString('th-TH'):''; }
+
+    /* ===== AutoComplete (Portal) ===== */
+    const AC={ portal:document.getElementById('acPortal'), input:null, items:[], active:-1 };
+    function closeAC(){ AC.portal.innerHTML=''; AC.input=null; AC.items=[]; AC.active=-1; }
+    function highlight(t,q){ if(!q) return t; const re=new RegExp(escapeReg(q),'ig'); return t.replace(re,m=>`<span class="hl">${m}</span>`); }
+    function applyItemToRow(it){
+      if(!AC.input) return;
+      AC.input.value = it.name || it.sku || it.barcode || '';
+      AC.input.dataset.barcode = it.barcode||'';
+      AC.input.dataset.sku = it.sku||'';
+      AC.input.dataset.name = it.name||'';
+      const row=AC.input.closest('tr'); const qty=row.querySelector('.qty'); if(qty){ qty.focus(); qty.select?.(); }
+      closeAC();
+    }
+    function openACFor(input, items, query){
+      AC.input=input; AC.items=items; AC.active=-1;
+      const rect=input.getBoundingClientRect();
+      const box=document.createElement('div'); box.className='ac-list'; box.style.position='fixed'; box.style.left=rect.left+'px'; box.style.top=(rect.bottom+4)+'px'; box.style.width=rect.width+'px';
+      if(!items.length){ box.innerHTML=`<div class="ac-empty">ไม่พบสินค้า</div>`; }
+      else{
+        box.innerHTML=items.map((it,i)=>{
+          const title=it.name || it.sku || it.barcode || '';
+          const sub= it.sku ? `SKU ${it.sku}` : (it.barcode? `SKU —` : '');
+          return `<div class="ac-item" data-i="${i}"><div class="ac-title">${highlight(title,query)}</div><div class="ac-sub">${highlight(sub,query)}</div></div>`;
+        }).join('');
+      }
+      AC.portal.innerHTML=''; AC.portal.appendChild(box);
+      box.querySelectorAll('.ac-item').forEach((el,i)=> el.addEventListener('mousedown',e=>{ e.preventDefault(); applyItemToRow(items[i]); }));
+    }
+    function setACActive(n){ const list=AC.portal.querySelectorAll('.ac-item'); if(!list.length) return; list.forEach(nd=>nd.classList.remove('active')); AC.active=(n+list.length)%list.length; list[AC.active].classList.add('active'); list[AC.active].scrollIntoView({block:'nearest'}); }
+    function searchInv(q){
+      q=(q||'').trim(); if(!q||!INVENTORY.length) return [];
+      const norm=s=>(s||'').toString().toLowerCase(); const qq=norm(q);
+      const arr=[]; for(const it of INVENTORY){
+        const f1=norm(it.name), f2=norm(it.sku), f3=norm(it.barcode);
+        let score=-1; if(f3.startsWith(qq)||f2.startsWith(qq)||f1.startsWith(qq)) score=0; else if(f3.includes(qq)||f2.includes(qq)||f1.includes(qq)) score=1;
+        if(score>-1) arr.push([score,it]);
+      } arr.sort((a,b)=>a[0]-b[0]); return arr.slice(0,12).map(x=>x[1]);
+    }
+
+    /* ===== Bind / Init ===== */
+    function bindInputs(){
+      document.querySelectorAll('.totalPrice,#totalShip').forEach(inp=>{
+        inp.removeEventListener('input',formatMoneyInputBind); inp.addEventListener('input',formatMoneyInputBind);
+        inp.removeEventListener('input',calculateAll); inp.addEventListener('input',calculateAll);
+        inp.onkeydown=(e)=>{ if(e.key==='Enter'){ const row=inp.closest('tr'); const q=parseInt((row.querySelector('.qty').value||'').replace(/,/g,''),10); const p=parseFloat((row.querySelector('.totalPrice').value||'').replace(/,/g,'')); if(q>0&&Number.isInteger(q)&&p>=0){ e.preventDefault(); const newRow=addRow(true); newRow.querySelector('.product').focus(); } } };
+      });
+      document.querySelectorAll('.qty').forEach(inp=>{
+        inp.removeEventListener('input',formatQtyInputBind); inp.addEventListener('input',formatQtyInputBind);
+        inp.removeEventListener('input',calculateAll); inp.addEventListener('input',calculateAll);
+        inp.onkeydown=(e)=>{ if(e.key==='Enter'){ e.preventDefault(); inp.closest('tr').querySelector('.totalPrice').focus(); } };
+      });
+      document.querySelectorAll('.product').forEach(inp=>{
+        inp.oninput=()=>{ delete inp.dataset.barcode; delete inp.dataset.sku; delete inp.dataset.name; if(!INVENTORY.length){ closeAC(); return; } const q=inp.value; const items=searchInv(q); openACFor(inp,items,q); };
+        inp.onblur=()=> setTimeout(closeAC,150);
+        inp.onkeydown=(e)=>{ const hasList=!!document.querySelector('#acPortal .ac-list'); if(e.key==='ArrowDown'&&hasList){ e.preventDefault(); setACActive(AC.active+1); } else if(e.key==='ArrowUp'&&hasList){ e.preventDefault(); setACActive(AC.active-1); } else if(e.key==='Enter'&&hasList&&AC.active>-1){ e.preventDefault(); applyItemToRow(AC.items[AC.active]); } else if(e.key==='Escape'&&hasList){ e.preventDefault(); closeAC(); } };
+        inp.onchange=()=>{ const code=(inp.value||'').trim().replace(/[\[\]\s]/g,''); if(!code||!INVENTORY.length) return; const it=INVENTORY.find(x=>x.barcode===code); if(it){ applyItemToRow(it); } };
+      });
+    }
+    function formatMoneyInputBind(e){ formatMoneyInput(e.target); }
+    function formatQtyInputBind(e){ formatQtyInput(e.target); }
+
+    /* ===== VAT / Shipping ===== */
+    document.getElementById('billType').addEventListener('change',togglePriceVAT);
+    function togglePriceVAT(){ document.getElementById('priceVATLabel').style.display=(document.getElementById('billType').value==='vat')?'block':'none'; }
+    const totalShipInput=document.getElementById('totalShip'), shipError=document.getElementById('shipError'), noShipCheckbox=document.getElementById('noShip');
+    function validateShipping(){ const v=parseFloat((totalShipInput.value||'').replace(/,/g,'')); if(noShipCheckbox.checked||(!isNaN(v)&&v>0)){ shipError.style.display='none'; totalShipInput.classList.remove('error'); return true; } shipError.style.display='block'; totalShipInput.classList.add('error'); return false; }
+    totalShipInput.addEventListener('input',validateShipping);
+    noShipCheckbox.addEventListener('change',()=>{ totalShipInput.disabled=noShipCheckbox.checked; validateShipping(); });
+
+    /* ===== Table ops ===== */
+    function updateIndices(){ document.querySelectorAll('#calcTable tbody tr').forEach((r,i)=> r.querySelector('.index').innerText=i+1 ); }
+    function deleteRow(btn){ const row=btn.closest('tr'); row.remove(); updateIndices(); bindInputs(); calculateAll(); }
+    function addRow(flash=false){
+      const tb=document.querySelector('#calcTable tbody'); const tr=document.createElement('tr');
+      tr.innerHTML=`<td class="index"></td>
+        <td><input type="text" class="product text-left" placeholder="พิมพ์/สแกน Barcode หรือพิมพ์ชื่อ/รหัส SKU เพื่อค้นหา"></td>
+        <td><input type="text" class="qty" placeholder="จำนวน" inputmode="numeric" pattern="[0-9]*"></td>
+        <td><input type="text" class="totalPrice" placeholder="ราคารวม/รายการ" inputmode="decimal"></td>
+        <td class="shipRow">-</td><td class="shipShare">-</td><td class="result hide-result">-</td>
+        <td><button class="btn-delete" onclick="deleteRow(this)" title="ลบ">ลบ</button></td>`;
+      tb.appendChild(tr); updateIndices(); bindInputs(); calculateAll();
+      if(flash){ tr.classList.add('flash'); setTimeout(()=>tr.classList.remove('flash'),1200); }
+      return tr;
+    }
+    function clearAll(){
+      document.getElementById('billType').value='cash'; togglePriceVAT();
+      document.getElementById('priceVAT').value='exclusive'; noShipCheckbox.checked=false;
+      totalShipInput.disabled=false; totalShipInput.value='';
+      document.querySelectorAll('.error').forEach(el=>el.classList.remove('error'));
+      document.querySelectorAll('#calcTable tbody tr').forEach(row=>{
+        ['product','qty','totalPrice'].forEach(cls=>{ const el=row.querySelector('.'+cls); if(el){ el.value=''; el.removeAttribute('data-barcode'); el.removeAttribute('data-sku'); el.removeAttribute('data-name'); }});
+        row.querySelector('.shipRow').innerText='-'; row.querySelector('.shipShare').innerText='-';
+        const rc=row.querySelector('.result'); rc.innerText='-'; rc.classList.add('hide-result');
+      });
+      updateIndices(); bindInputs(); calculateAll();
+      showToast('ล้างข้อมูลในตารางแล้ว');
+    }
+
+    /* ===== Calculate ===== */
+    function calculateAll(){
+      document.querySelectorAll('.error').forEach(el=>el.classList.remove('error'));
+      updateIndices();
+      const billType=document.getElementById('billType').value, priceVATMode=document.getElementById('priceVAT').value;
+      if(!validateShipping()){}
+      const totalShip=noShipCheckbox.checked?0:(parseFloat((totalShipInput.value||'').replace(/,/g,''))||0);
+      const rows=Array.from(document.querySelectorAll('#calcTable tbody tr'));
+      const qtys=rows.map(r=>parseInt((r.querySelector('.qty').value||'').replace(/,/g,''))||0);
+      const prices=rows.map(r=>parseFloat((r.querySelector('.totalPrice').value||'').replace(/,/g,''))||0);
+      let vatFactor=1; if(billType==='vat') vatFactor=(priceVATMode==='exclusive')?1.07:1;
+      const perRowShip=rows.length>0? totalShip/rows.length:0;
+
+      rows.forEach((row,i)=>{
+        const D=qtys[i], E=prices[i];
+        const shipRowCell=row.querySelector('.shipRow'), shipCell=row.querySelector('.shipShare'), resultCell=row.querySelector('.result');
+        let valid=true;
+        if(D<=0||!Number.isInteger(D)){ row.querySelector('.qty').classList.add('error'); valid=false; }
+        if(E<0){ row.querySelector('.totalPrice').classList.add('error'); valid=false; }
+        if(!valid||rows.length===0){ shipRowCell.innerText='-'; shipCell.innerText='-'; resultCell.innerText='-'; resultCell.classList.add('hide-result'); return; }
+        shipRowCell.innerText=n2(perRowShip,2);
+        const perItemShip=D>0? perRowShip/D:0; shipCell.innerText=n2(perItemShip,2);
+        const net=D>0? ((E*vatFactor)+perRowShip)/D:0;
+        if(D>0 && E>=0){ resultCell.innerText=n2(net,2); resultCell.classList.remove('hide-result'); } else { resultCell.innerText='-'; resultCell.classList.add('hide-result'); }
+      });
+
+      renderHistoryTable(); // always visible
+    }
+
+    /* ===== Popup / Toast ===== */
+    function closePopup(){ document.getElementById('popup').style.display='none'; document.getElementById('popupBody').innerHTML=''; }
+    function showAlert(msg){ document.getElementById('popupBody').innerHTML=`<div style="font-size:.96rem;min-width:220px;text-align:center;padding:14px 0 8px">${msg}</div><div style="text-align:center;margin-top:.8rem"><button onclick="closePopup()" class="btn btn-primary">ตกลง</button></div>`; document.getElementById('popup').style.display=''; }
+    function showToast(msg){ document.getElementById('popupBody').innerHTML=`<div class="toast">${msg}</div>`; document.getElementById('popup').style.display=''; setTimeout(()=>closePopup(),1300); }
+    function showConfirm(msg,yesFn){ document.getElementById('popupBody').innerHTML=`<div style="font-size:.96rem;text-align:center;padding:8px 0">${msg}</div><div style="text-align:center;margin-top:.8rem"><button onclick="closePopup()" class="btn btn-outline" style="margin-right:.5rem">ยกเลิก</button><button onclick="confirmYesAction()" class="btn btn-primary">ยืนยัน</button></div>`; document.getElementById('popup').style.display=''; window.__yesFn=yesFn; }
+    function confirmYesAction(){ closePopup(); setTimeout(()=>{ window.__yesFn && window.__yesFn(); },90); }
+
+    /* ===== Save / History (default visible) ===== */
+    function getLogs(){ return JSON.parse(localStorage.getItem('costLogs')||'[]'); }
+    function setLogs(ls){ localStorage.setItem('costLogs',JSON.stringify(ls)); }
+    function saveLog(){
+      if(!validateShipping()){ showAlert("กรุณากรอกค่าขนส่ง > 0 หรือเลือก 'ไม่มีค่าขนส่ง' ก่อนบันทึก"); return; }
+      const rows=Array.from(document.querySelectorAll('#calcTable tbody tr'));
+      let invalid=false;
+      rows.forEach(r=>{ const q=parseInt((r.querySelector('.qty').value||'').replace(/,/g,''),10); const p=parseFloat((r.querySelector('.totalPrice').value||'').replace(/,/g,'')); if(!(q>0&&Number.isInteger(q))||!(p>=0)) invalid=true; });
+      if(invalid){ showAlert("กรุณากรอกข้อมูลให้ครบถ้วน (จำนวนต้องเป็นจำนวนเต็ม > 0, ราคารวม/รายการ ≥ 0)"); return; }
+
+      const btn=document.getElementById('saveBtn'); setLoading(btn,true);
+      showConfirm("ยืนยันบันทึกผล?", ()=>{
+        const rows = Array.from(document.querySelectorAll('#calcTable tbody tr')).map(row=>{
+          const prod=row.querySelector('.product');
+          return { findText:prod.value||'', barcode:prod.dataset.barcode||'', sku:prod.dataset.sku||'', name:prod.dataset.name||'', qty:row.querySelector('.qty').value||'', price:row.querySelector('.totalPrice').value||'', shipRow:row.querySelector('.shipRow').innerText||'-', shipShare:row.querySelector('.shipShare').innerText||'-', result:row.querySelector('.result').innerText||'-' };
+        });
+        const logObj={ rows, billType:document.getElementById('billType').value, priceVAT:document.getElementById('priceVAT').value, totalShip:document.getElementById('totalShip').value, ts:nowStamp() };
+        const logs=getLogs(); logs.unshift(logObj); while(logs.length>HISTORY_LIMIT) logs.pop(); setLogs(logs);
+        renderHistoryTable(); showToast("บันทึกข้อมูลเรียบร้อย"); setTimeout(()=> setLoading(btn,false,'บันทึกผล'), 900);
+      });
+    }
+    function toggleHistory(){
+      const el=document.getElementById('historySection');
+      const btn=document.getElementById('historyBtn');
+      if(el.style.display==='none'){ el.style.display=''; btn.textContent='ซ่อนประวัติ'; }
+      else{ el.style.display='none'; btn.textContent='แสดงประวัติ'; }
+    }
+    function renderHistoryTable(){
+      const el=document.getElementById('historySection');
+      const logs=getLogs(); 
+      if(!logs.length){ el.innerHTML='<div class="history-header">ประวัติการคำนวณ</div><div style="color:#6b7280">ยังไม่มีประวัติ</div>'; return; }
+      let html=`<div class="history-header">ประวัติการคำนวณ (ล่าสุด 10 รายการ)</div>
+      <table class="history-table"><thead><tr>
+      <th>เวลา</th><th>ประเภทบิล</th><th>VAT</th><th>ค่าขนส่ง</th><th class="namecol">สินค้า</th><th>จำนวน</th><th>ต้นทุน/หน่วย</th><th>ลบ</th><th>พิมพ์</th>
+      </tr></thead><tbody>`;
+      logs.slice(0,10).forEach((log,idx)=>{
+        const prod=log.rows.map(r=>[r.name||null, r.sku?`SKU ${r.sku}`:null, r.barcode?`[${r.barcode}]`:null].filter(Boolean).join(' • ')).join('<br>');
+        const qtys=log.rows.map(r=>n2((r.qty||'').toString().replace(/,/g,''),0)).join('<br>');
+        const costs=log.rows.map(r=>n2((r.result||'').toString().replace(/,/g,''),2)).join('<br>');
+        html+=`<tr>
+          <td>${log.ts}</td>
+          <td>${i18nBillType(log.billType)}</td>
+          <td>${i18nVatMode(log.priceVAT)}</td>
+          <td style="text-align:right">${n2((log.totalShip||'').toString().replace(/,/g,''),2)}</td>
+          <td class="namecol">${prod}</td>
+          <td style="text-align:right">${qtys}</td>
+          <td style="text-align:right">${costs}</td>
+          <td><button onclick="deleteLog(${idx})" class="btn btn-danger-solid">ลบ</button></td>
+          <td><button onclick="showPrintReceiptFromLog(${idx})" class="btn btn-outline">พิมพ์</button></td>
+        </tr>`;
+      });
+      html+='</tbody></table>'; el.innerHTML=html;
+    }
+    function deleteLog(idx){ showConfirm('ยืนยันลบประวัติรายการนี้?',()=>{ const logs=getLogs(); logs.splice(idx,1); setLogs(logs); renderHistoryTable(); }); }
+
+    /* ===== Print ===== */
+    function showPrintReceiptFromLog(idx){
+      const logs=getLogs(); if(!logs[idx]) return; const log=logs[idx];
+      const rowsHtml=log.rows.map((r,i)=>{ const q=(r.qty||'').replace(/,/g,''), cost=(r.result||'').replace(/,/g,''); if(!q||!cost||isNaN(cost)||cost==='-') return ''; const left=[`${i+1}. จำนวน ${n2(q,0)}`, r.name||null, r.sku?`SKU ${r.sku}`:null, r.barcode?`[${r.barcode}]`:null].filter(Boolean).join(' '); return `<div class="item"><span>${left}</span><span>${n2(cost,2)}</span></div>`; }).join('');
+      const body=`<div class="receipt">
+        <div class="center">สรุปต้นทุน</div>
+        <div>เวลา: ${log.ts}</div>
+        <div>ประเภทบิล: ${i18nBillType(log.billType)}</div>
+        <div>โหมดราคา VAT: ${i18nVatMode(log.priceVAT)}</div>
+        <div>ค่าขนส่ง: ${n2((log.totalShip||'').toString().replace(/,/g,''),2)} บาท</div>
+        <div class="hr"></div>${rowsHtml}</div>
+      <div style="text-align:center;margin-top:.8rem;display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap">
+        <button onclick="printReceipt(${idx},'A4')" class="btn btn-primary">พิมพ์ A4</button>
+        <button onclick="printReceipt(${idx},'58mm')" class="btn btn-outline">พิมพ์ใบเสร็จ 58mm</button>
+        <button onclick="closePopup()" class="btn btn-outline">ปิด</button>
+      </div>`;
+      document.getElementById('popupBody').innerHTML=body; document.getElementById('popup').style.display='';
+    }
+    function printReceipt(idx,mode){
+      const logs=getLogs(); if(!logs[idx]) return; const log=logs[idx];
+      const rowsHtml=log.rows.map((r,i)=>{ const q=(r.qty||'').replace(/,/g,''), cost=(r.result||'').replace(/,/g,''); if(!q||!cost||isNaN(cost)||cost==='-') return ''; const left=[`${i+1}. จำนวน ${n2(q,0)}`, r.name||null, r.sku?`SKU ${r.sku}`:null, r.barcode?`[${r.barcode}]`:null].filter(Boolean).join(' '); return `<div class="item"><span>${left}</span><span>${n2(cost,2)}</span></div>`; }).join('');
+      let html,style;
+      if(mode==='A4'){ style=`<style>body{font-family:TH Sarabun New,Arial,Helvetica,sans-serif;font-size:13pt;margin:22px}h3{margin:0 0 6px}.hr{border-top:1px dashed #444;margin:8px 0}.item{display:flex;justify-content:space-between;margin:2px 0}</style>`;
+        html=`<h3>ใบสรุปต้นทุน (A4)</h3><div>เวลา: ${log.ts}</div><div>ประเภทบิล: ${i18nBillType(log.billType)}</div><div>โหมดราคา VAT: ${i18nVatMode(log.priceVAT)}</div><div>ค่าขนส่งรวม: ${n2((log.totalShip||'').toString().replace(/,/g,''),2)} บาท</div><div class="hr"></div>${rowsHtml}<div class="hr"></div><div style="font-size:10pt;color:#666">เอกสารภายในร้าน</div>`;
+      }else{ style=`<style>body{font-family:Consolas,monospace;font-size:14px;margin:0}.receipt{width:320px;margin:auto}.center{text-align:center}.hr{border-top:1.2px dashed #444;margin:8px 0}.item{display:flex;justify-content:space-between;margin:2px 0}</style>`;
+        html=`<div class="receipt"><div class="center">สรุปต้นทุน</div><div>เวลา: ${log.ts}</div><div>ประเภทบิล: ${i18nBillType(log.billType)}</div><div>โหมดราคา VAT: ${i18nVatMode(log.priceVAT)}</div><div>ค่าขนส่ง: ${n2((log.totalShip||'').toString().replace(/,/g,''),2)} บาท</div><div class="hr"></div>${rowsHtml}</div>`; }
+      const w=window.open('','','width=700,height=900'); w.document.write('<html><head>'+style+'</head><body>'+html+'</body></html>'); w.document.close(); w.focus(); setTimeout(()=>w.print(),400); closePopup();
+    }
+
+    /* ===== Self-tests (basic) ===== */
+    function runSelfTests(){
+      const results=[]; const ok=(name,cond)=>results.push([name,!!cond]);
+      try{
+        ok('syncInventory exists', typeof syncInventory==='function');
+        const csv='SKU,Barcode,Name\nABC,123,Hello\n"A, B",,Quoted';
+        const rows=parseCSV(csv); ok('parseCSV row count', rows.length===3);
+        const hdrIndex=findHeader(rows[0],['sku']); ok('findHeader for sku', hdrIndex===0);
+        // DOM calc test
+        document.getElementById('billType').value='cash';
+        document.getElementById('priceVAT').value='exclusive';
+        document.getElementById('noShip').checked=true; // no shipping
+        const row=document.querySelector('#calcTable tbody tr');
+        row.querySelector('.qty').value='10';
+        row.querySelector('.totalPrice').value='100';
+        calculateAll();
+        ok('calculateAll net=10.00', row.querySelector('.result').innerText.replace(/[,\s]/g,'')==='10.00');
+      }catch(e){ console.error('Self-tests error',e); }
+      console.log('%cSelf-tests', 'font-weight:bold');
+      results.forEach(([name,pass])=> console.log(pass?'✅':'❌', name));
+    }
+
+    /* ===== Init ===== */
+    function togglePriceVAT(){ document.getElementById('priceVATLabel').style.display=(document.getElementById('billType').value==='vat')?'block':'none'; }
+    window.addEventListener('DOMContentLoaded',()=>{
+      togglePriceVAT(); bindInputs(); validateShipping(); calculateAll(); renderHistoryTable();
+      // Auto sync inventory on load (non-blocking)
+      syncInventory(true);
+      // Run basic self-tests (results in console)
+      runSelfTests();
+    });
+    document.addEventListener('keydown',(e)=>{ if(e.key==='Escape'&&popupVisible()){ e.preventDefault(); closePopup(); } if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){ e.preventDefault(); saveLog(); } });
+  </script>
+</body>
+</html>
