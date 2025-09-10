@@ -3,168 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>เครื่องคิดต้นทุน v2.7.0 (Force Login)</title>
+  <title>เครื่องคิดต้นทุน v2.7.1 (Force Login)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    /* CSS เหมือนเดิมทั้งหมด */
     body { font-family: 'Sarabun', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
     .spinner{ width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;display:inline-block;animation:spin .6s linear infinite }
     @keyframes spin{to{transform:rotate(360deg)}}
-  </style>
-</head>
-<body class="bg-slate-100">
-<div class="container mx-auto max-w-screen-2xl p-4 sm:p-5">
-  <div id="auth-section" class="flex justify-between items-center bg-white p-3 rounded-lg shadow-md mb-6">
-    <div id="user-info" class="text-sm text-slate-600">กำลังตรวจสอบสถานะ...</div>
-    <div>
-      <button id="login-btn" class="hidden inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-blue-700" onclick="signInWithGoogle()">
-        <svg class="w-4 h-4 mr-2" role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Google</title><path fill="white" d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.02 1.02-2.3 1.84-4.59 1.84-5.52 0-10-4.48-10-10s4.48-10 10-10c3.08 0 5.24 1.28 6.4 2.32l2.44-2.44C19.49 1.03 16.28 0 12.48 0 5.6 0 0 5.6 0 12.5S5.6 25 12.48 25c6.9 0 11.48-4.88 11.48-11.72 0-.79-.07-1.54-.19-2.28l-11.48-.08z"/></svg>
-        Login with Google
-      </button>
-      <button id="logout-btn" class="hidden inline-flex items-center px-4 py-2 bg-white border border-slate-300 rounded-md font-semibold text-sm text-slate-700 hover:bg-slate-50" onclick="signOut()">
-        Logout
-      </button>
-    </div>
-  </div>
-
-  <div id="main-content" class="hidden">
-    <header class="mb-6">
-      <h1 class="text-3xl font-bold text-slate-800">เครื่องคิดต้นทุน</h1>
-      <p class="text-sm text-slate-500 mt-1">Version: 2.7.0 (Force Login)</p>
-    </header>
-
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-       <div class="lg:col-span-1 space-y-5">
-        <div class="bg-white p-5 rounded-lg shadow-md">
-            <h2 class="text-base font-bold text-slate-700 border-b pb-3 mb-4">ข้อมูลบิล</h2>
-            </div>
-        <div class="bg-white p-5 rounded-lg shadow-md">
-            <details>
-                <summary class="text-base font-bold text-slate-700 cursor-pointer select-none">จัดการ Inventory</summary>
-                </details>
-        </div>
-       </div>
-       <div class="lg:col-span-3 space-y-6">
-        <div class="bg-white p-5 rounded-lg shadow-md">
-            </div>
-        <div class="bg-white p-5 rounded-lg shadow-md" id="historySectionWrapper">
-            </div>
-       </div>
-    </div>
-  </div>
-  </div>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script>
-  /* ===== Firebase Config (same as before) ===== */
-  const firebaseConfig = {
-      apiKey: "AIzaSyC011yT8CHkS_BQ_tua2rYfwW86cFc-4oI",
-      authDomain: "cost-calculator-app-ca65c.firebaseapp.com",
-      databaseURL: "https://cost-calculator-app-ca65c-default-rtdb.firebaseio.com",
-      projectId: "cost-calculator-app-ca65c",
-      storageBucket: "cost-calculator-app-ca65c.appspot.com",
-      messagingSenderId: "992180494210",
-      appId: "1:992180494210:web:06f8619b8ddf1a6ef0b99b"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const database = firebase.database();
-  let logsRef;
-  let currentUserId; 
-  let currentDataListener = null;
-
-  /* ===== Other JS code is the same, only Auth/Init section is changed ===== */
-  
-  /* ===== START: Auth and App Init (Updated Logic) ===== */
-  const loginBtn = document.getElementById('login-btn');
-  const logoutBtn = document.getElementById('logout-btn');
-  const userInfoDiv = document.getElementById('user-info');
-  const mainContent = document.getElementById('main-content'); // <-- ตัวแปรใหม่
-
-  function signInWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(error => {
-      console.error("Login failed:", error);
-      // ข้อผิดพลาดเรื่องโดเมนจะแสดงที่นี่
-      showAlert("Login ไม่สำเร็จ: " + error.message);
-    });
-  }
-
-  function signOut() {
-    auth.signOut();
-  }
-
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      // --- User is signed in ---
-      currentUserId = user.uid;
-      logsRef = database.ref(`costLogs/${currentUserId}`);
-
-      userInfoDiv.innerHTML = `ล็อกอินเป็น: <span class="font-semibold">${user.displayName || user.email}</span>`;
-      loginBtn.classList.add('hidden');
-      logoutBtn.classList.remove('hidden');
-      
-      mainContent.classList.remove('hidden'); // <-- แสดงเนื้อหาหลัก
-      
-      startDataListener();
-
-    } else {
-      // --- User is signed out ---
-      currentUserId = null;
-      if (currentDataListener && logsRef) {
-        logsRef.off('value', currentDataListener);
-      }
-      
-      ALL_LOGS_CACHE = [];
-      renderHistoryTable();
-
-      userInfoDiv.innerText = 'กรุณาล็อกอินเพื่อใช้งาน';
-      loginBtn.classList.remove('hidden');
-      logoutBtn.classList.add('hidden');
-      
-      mainContent.classList.add('hidden'); // <-- ซ่อนเนื้อหาหลัก
-    }
-  });
-  
-  function startDataListener() {
-    // This function is the same as before
-    if (!logsRef) return;
-    if (currentDataListener) {
-      logsRef.off('value', currentDataListener);
-    }
-    
-    currentDataListener = logsRef.orderByChild('createdAt').limitToLast(200).on('value', (snapshot) => {
-        const logsData = snapshot.val();
-        ALL_LOGS_CACHE = logsData ? Object.keys(logsData).map(key => ({ id: key, ...logsData[key] })).reverse() : [];
-        renderHistoryTable();
-    }, (error) => {
-        console.error("Data listener error:", error);
-        showAlert("ไม่สามารถโหลดข้อมูลประวัติได้: " + error.message);
-    });
-  }
-  
-  function initApp(){
-    lucide.createIcons();
-    togglePriceVAT();
-    addRow();
-    bindInputs();
-    validateShipping();
-    syncInventory(true);
-  }
-
-  initApp();
-  /* ===== END: Auth and App Init ===== */
-
-  // NOTE: All other functions (saveLog, renderHistoryTable, calculateAll, etc.)
-  // are the same as the previous version. For brevity, they are not repeated here.
-  // Please use the full code from the previous step and just modify the HTML wrapper
-  // and the onAuthStateChanged function as shown above.
-</script>
-</body>
-</html>
+    .ac-portal{position:fixed;z-index:9999;left:0;top:0;width:0;height:0}
+    .ac-list{ max-height:280px;overflow:auto;background:#fff;border:1px solid #e2e8f0;border-radius:.5rem; box-shadow:0 10px 15px -3px rgb(0 0 0 / .1), 0 4px 6px -4px rgb(0 0 0 / .1); overscroll-behavior:contain; }
+    .ac-item{padding:.5rem .75rem;cursor:pointer;transition:all .12s ease-in-out;border-left:3px solid transparent}
+    .ac-item:hover,.ac-item.active{background:#DBEAFE;color:#0f172a;border-left-color:#3b82f6}
+    .ac-title{font-weight:600;color:#1e293b;line-height:1.3}
+    .ac-sub{margin-top:.1rem;font-size:.86rem;color:#64748b}
+    .ac-empty{padding:.6
