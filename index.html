@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>เครื่องคิดต้นทุน v3.1 (Pro)</title>
+  <title>เครื่องคิดต้นทุน v3.2 (Pro)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,9 +30,9 @@
     body.show-advanced .advanced-feature { display: block; }
     
     /* Custom Input Styles */
-    .form-input { @apply w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow duration-200; }
-    /* 🛠️ แก้ไข: เพิ่ม min-w-0 เพื่อป้องกันไม่ให้ input ทะลุเซลล์ตาราง */
-    .table-input { @apply w-full min-w-0 bg-transparent px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white rounded-md transition-all duration-200 border border-transparent focus:border-indigo-300; }
+    .form-input { @apply w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow duration-200; box-sizing: border-box; }
+    /* 🛠️ แก้ไข: ล็อคขนาด input ให้ไม่ทะลุเซลล์ตารางด้วย display: block และ box-sizing: border-box */
+    .table-input { @apply w-full min-w-0 bg-transparent px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white rounded-md transition-all duration-200 border border-transparent focus:border-indigo-300; display: block; box-sizing: border-box; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -47,8 +47,8 @@
         </div>
         <div>
           <h1 class="text-xl font-bold text-slate-900 leading-tight">ระบบคำนวณต้นทุน</h1>
-          <!-- 🛠️ แก้ไข: อัปเดตเวอร์ชันเป็น 3.1 ตรงนี้ครับ -->
-          <p class="text-xs text-slate-500">Version 3.1 Pro</p>
+          <!-- 🛠️ แก้ไข: อัปเดตเวอร์ชันเป็น 3.2 -->
+          <p class="text-xs text-slate-500">Version 3.2 Pro</p>
         </div>
       </div>
       
@@ -160,32 +160,21 @@
           </div>
           
           <div class="overflow-x-auto flex-1">
+            <!-- 🛠️ แก้ไข: นำ colgroup ออกทั้งหมด และย้ายการกำหนดขนาด (w-...) ไปไว้ที่ <th> แทน -->
             <table id="calcTable" class="w-full text-sm table-fixed min-w-[1024px]">
-              <!-- 🛠️ แก้ไข: ขยายขนาดความกว้างคอลัมน์ (px) ให้เหมาะสมขึ้นเพื่อป้องกันซ้อนทับ -->
-              <colgroup>
-                <col style="width: 50px">
-                <col style="width: auto">
-                <col style="width: 100px">
-                <col style="width: 120px">
-                <col style="width: 120px" class="advanced-col">
-                <col style="width: 100px">
-                <col style="width: 100px">
-                <col style="width: 100px">
-                <col style="width: 110px">
-                <col style="width: 50px">
-              </colgroup>
               <thead class="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th class="px-3 py-3 font-semibold text-slate-600 text-center">#</th>
-                  <th class="px-3 py-3 font-semibold text-slate-600 text-left">ค้นหาสินค้า</th>
-                  <th class="px-3 py-3 font-semibold text-slate-600 text-right">จำนวน</th>
-                  <th class="px-3 py-3 font-semibold text-slate-600 text-right">ราคารวม</th>
-                  <th class="px-3 py-3 font-semibold text-slate-600 text-right advanced-col">ส่วนลด/รายการ</th>
-                  <th class="px-3 py-3 font-semibold text-slate-600 text-right">ค่าส่ง (รวม)</th>
-                  <th class="px-3 py-3 font-semibold text-slate-600 text-right">ค่าส่ง (หน่วย)</th>
-                  <th class="px-3 py-3 font-semibold text-slate-600 text-right">ทุนเดิม</th>
-                  <th class="px-3 py-3 font-bold text-indigo-700 text-right bg-indigo-50/50">ทุนใหม่</th>
-                  <th class="px-3 py-3"></th>
+                  <!-- กำหนดคลาส w-xxx ควบคุมขนาดคอลัมน์โดยตรง -->
+                  <th class="px-2 py-3 font-semibold text-slate-600 text-center w-12">#</th>
+                  <th class="px-2 py-3 font-semibold text-slate-600 text-left w-auto min-w-[200px]">ค้นหาสินค้า</th>
+                  <th class="px-2 py-3 font-semibold text-slate-600 text-right w-24">จำนวน</th>
+                  <th class="px-2 py-3 font-semibold text-slate-600 text-right w-28">ราคารวม</th>
+                  <th class="px-2 py-3 font-semibold text-slate-600 text-right w-28 advanced-col">ส่วนลด/รายการ</th>
+                  <th class="px-2 py-3 font-semibold text-slate-600 text-right w-24">ค่าส่ง (รวม)</th>
+                  <th class="px-2 py-3 font-semibold text-slate-600 text-right w-24">ค่าส่ง (หน่วย)</th>
+                  <th class="px-2 py-3 font-semibold text-slate-600 text-right w-24">ทุนเดิม</th>
+                  <th class="px-2 py-3 font-bold text-indigo-700 text-right bg-indigo-50/50 w-28">ทุนใหม่</th>
+                  <th class="px-2 py-3 w-12"></th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-slate-100"></tbody>
@@ -399,7 +388,8 @@
   function updateIndices(){ document.querySelectorAll('#calcTable tbody tr').forEach((r,i)=> r.querySelector('.index').innerText=i+1 ); }
   function deleteRow(btn){ const row=btn.closest('tr'); row.remove(); updateIndices(); bindInputs(); calculateAll(); }
   function addRow(flash=false){ const tb=document.querySelector('#calcTable tbody'); const tr=document.createElement('tr'); tr.className='hover:bg-slate-50 transition-colors group'; 
-  tr.innerHTML=`<td class="index px-3 py-2 whitespace-nowrap text-slate-500 text-center font-medium">1</td><td class="px-3 py-2"><input type="text" class="product table-input font-medium" placeholder="พิมพ์ชื่อหรือสแกนบาร์โค้ด..."></td><td class="px-3 py-2"><input type="text" class="qty table-input text-right font-medium text-indigo-700" placeholder="0" inputmode="numeric"></td><td class="px-3 py-2"><input type="text" class="totalPrice table-input text-right font-medium" placeholder="0.00" inputmode="decimal"></td><td class="px-3 py-2 advanced-col"><input type="text" class="itemDiscount table-input text-right text-red-600 font-medium" placeholder="0.00" inputmode="decimal"></td><td class="shipRow px-3 py-2 whitespace-nowrap text-slate-500 text-right">-</td><td class="shipShare px-3 py-2 whitespace-nowrap text-slate-500 text-right">-</td><td class="oldCost px-3 py-2 whitespace-nowrap text-slate-400 text-right">-</td><td class="result hide-result px-3 py-2 whitespace-nowrap text-indigo-800 font-bold text-right bg-indigo-50/50 rounded-md">-</td><td class="px-3 py-2 whitespace-nowrap text-center"><button class="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100" onclick="deleteRow(this)" title="ลบ"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>`; 
+  /* 🛠️ แก้ไข: เปลี่ยน padding เป็น px-2 ในแต่ละเซลล์ และเพิ่มคลาส w-full ให้แน่ใจว่า Input จะขยายแค่พอดีในกรอบ */
+  tr.innerHTML=`<td class="index px-2 py-2 whitespace-nowrap text-slate-500 text-center font-medium">1</td><td class="px-2 py-2"><input type="text" class="product table-input font-medium w-full" placeholder="พิมพ์ชื่อหรือสแกนบาร์โค้ด..."></td><td class="px-2 py-2"><input type="text" class="qty table-input text-right font-medium text-indigo-700 w-full" placeholder="0" inputmode="numeric"></td><td class="px-2 py-2"><input type="text" class="totalPrice table-input text-right font-medium w-full" placeholder="0.00" inputmode="decimal"></td><td class="px-2 py-2 advanced-col"><input type="text" class="itemDiscount table-input text-right text-red-600 font-medium w-full" placeholder="0.00" inputmode="decimal"></td><td class="shipRow px-2 py-2 whitespace-nowrap text-slate-500 text-right">-</td><td class="shipShare px-2 py-2 whitespace-nowrap text-slate-500 text-right">-</td><td class="oldCost px-2 py-2 whitespace-nowrap text-slate-400 text-right">-</td><td class="result hide-result px-2 py-2 whitespace-nowrap text-indigo-800 font-bold text-right bg-indigo-50/50 rounded-md">-</td><td class="px-2 py-2 whitespace-nowrap text-center"><button class="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100" onclick="deleteRow(this)" title="ลบ"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>`; 
   tb.appendChild(tr); lucide.createIcons(); updateIndices(); bindInputs(); calculateAll(); if(flash){ tr.classList.add('bg-indigo-50'); setTimeout(()=>tr.classList.remove('bg-indigo-50'),1000); } return tr; }
   function toggleAdvancedFeatures() { const body = document.body; const btn = document.getElementById('toggleAdvancedBtn'); const isVisible = body.classList.toggle('show-advanced'); if (isVisible) { btn.innerHTML = `<i data-lucide="eye-off" class="w-4 h-4 mr-2"></i> โหมดพื้นฐาน`; btn.classList.replace('bg-slate-50', 'bg-slate-200'); } else { btn.innerHTML = `<i data-lucide="eye" class="w-4 h-4 mr-2"></i> โหมดขั้นสูง`; btn.classList.replace('bg-slate-200', 'bg-slate-50'); } lucide.createIcons(); }
   function clearAll(){ document.getElementById('billType').value='cash'; togglePriceVAT(); document.getElementById('priceVAT').value='exclusive'; noShipCheckbox.checked=false; totalShipInput.disabled=false; totalShipInput.classList.remove('bg-slate-100'); totalShipInput.value=''; document.getElementById('totalDiscount').value = ''; document.getElementById('discountType').value = 'baht'; document.querySelector('#calcTable tbody').innerHTML = ''; addRow(); document.querySelectorAll('.border-red-500').forEach(el=>el.classList.remove('border-red-500','ring-red-500')); calculateAll(); showToast('ล้างกระดานคำนวณเรียบร้อยแล้ว'); }
