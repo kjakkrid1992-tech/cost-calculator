@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>เครื่องคิดต้นทุน v3.0 (Pro UI)</title>
+  <title>เครื่องคิดต้นทุน v3.1 (Pro)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,7 +31,8 @@
     
     /* Custom Input Styles */
     .form-input { @apply w-full px-4 py-2.5 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm transition-shadow duration-200; }
-    .table-input { @apply w-full bg-transparent px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white rounded-md transition-all duration-200 border border-transparent focus:border-indigo-300; }
+    /* 🛠️ แก้ไข: เพิ่ม min-w-0 เพื่อป้องกันไม่ให้ input ทะลุเซลล์ตาราง */
+    .table-input { @apply w-full min-w-0 bg-transparent px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white rounded-md transition-all duration-200 border border-transparent focus:border-indigo-300; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -46,7 +47,8 @@
         </div>
         <div>
           <h1 class="text-xl font-bold text-slate-900 leading-tight">ระบบคำนวณต้นทุน</h1>
-          <p class="text-xs text-slate-500">Version 3.0 Pro</p>
+          <!-- 🛠️ แก้ไข: อัปเดตเวอร์ชันเป็น 3.1 ตรงนี้ครับ -->
+          <p class="text-xs text-slate-500">Version 3.1 Pro</p>
         </div>
       </div>
       
@@ -158,18 +160,17 @@
           </div>
           
           <div class="overflow-x-auto flex-1">
-            <!-- 🛠️ อัปเดต: เปลี่ยน min-w-[800px] เป็น min-w-[1024px] ป้องกัน Input โดนบีบ -->
             <table id="calcTable" class="w-full text-sm table-fixed min-w-[1024px]">
-              <!-- 🛠️ อัปเดต: ใช้ px คงที่สำหรับช่องตัวเลขแทน % -->
+              <!-- 🛠️ แก้ไข: ขยายขนาดความกว้างคอลัมน์ (px) ให้เหมาะสมขึ้นเพื่อป้องกันซ้อนทับ -->
               <colgroup>
-                <col style="width: 40px">
-                <col style="width: auto"> <!-- Product field สามารถยืดหดได้เต็มที่ -->
-                <col style="width: 85px">
-                <col style="width: 105px">
-                <col style="width: 105px" class="advanced-col">
-                <col style="width: 90px">
-                <col style="width: 90px">
-                <col style="width: 90px">
+                <col style="width: 50px">
+                <col style="width: auto">
+                <col style="width: 100px">
+                <col style="width: 120px">
+                <col style="width: 120px" class="advanced-col">
+                <col style="width: 100px">
+                <col style="width: 100px">
+                <col style="width: 100px">
                 <col style="width: 110px">
                 <col style="width: 50px">
               </colgroup>
@@ -398,7 +399,6 @@
   function updateIndices(){ document.querySelectorAll('#calcTable tbody tr').forEach((r,i)=> r.querySelector('.index').innerText=i+1 ); }
   function deleteRow(btn){ const row=btn.closest('tr'); row.remove(); updateIndices(); bindInputs(); calculateAll(); }
   function addRow(flash=false){ const tb=document.querySelector('#calcTable tbody'); const tr=document.createElement('tr'); tr.className='hover:bg-slate-50 transition-colors group'; 
-  // 🛠️ อัปเดต: เพิ่มการป้องกันข้อความพับบรรทัด (whitespace-nowrap) ในบางคอลัมน์
   tr.innerHTML=`<td class="index px-3 py-2 whitespace-nowrap text-slate-500 text-center font-medium">1</td><td class="px-3 py-2"><input type="text" class="product table-input font-medium" placeholder="พิมพ์ชื่อหรือสแกนบาร์โค้ด..."></td><td class="px-3 py-2"><input type="text" class="qty table-input text-right font-medium text-indigo-700" placeholder="0" inputmode="numeric"></td><td class="px-3 py-2"><input type="text" class="totalPrice table-input text-right font-medium" placeholder="0.00" inputmode="decimal"></td><td class="px-3 py-2 advanced-col"><input type="text" class="itemDiscount table-input text-right text-red-600 font-medium" placeholder="0.00" inputmode="decimal"></td><td class="shipRow px-3 py-2 whitespace-nowrap text-slate-500 text-right">-</td><td class="shipShare px-3 py-2 whitespace-nowrap text-slate-500 text-right">-</td><td class="oldCost px-3 py-2 whitespace-nowrap text-slate-400 text-right">-</td><td class="result hide-result px-3 py-2 whitespace-nowrap text-indigo-800 font-bold text-right bg-indigo-50/50 rounded-md">-</td><td class="px-3 py-2 whitespace-nowrap text-center"><button class="text-slate-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100 focus:opacity-100" onclick="deleteRow(this)" title="ลบ"><i data-lucide="trash-2" class="w-4 h-4"></i></button></td>`; 
   tb.appendChild(tr); lucide.createIcons(); updateIndices(); bindInputs(); calculateAll(); if(flash){ tr.classList.add('bg-indigo-50'); setTimeout(()=>tr.classList.remove('bg-indigo-50'),1000); } return tr; }
   function toggleAdvancedFeatures() { const body = document.body; const btn = document.getElementById('toggleAdvancedBtn'); const isVisible = body.classList.toggle('show-advanced'); if (isVisible) { btn.innerHTML = `<i data-lucide="eye-off" class="w-4 h-4 mr-2"></i> โหมดพื้นฐาน`; btn.classList.replace('bg-slate-50', 'bg-slate-200'); } else { btn.innerHTML = `<i data-lucide="eye" class="w-4 h-4 mr-2"></i> โหมดขั้นสูง`; btn.classList.replace('bg-slate-200', 'bg-slate-50'); } lucide.createIcons(); }
